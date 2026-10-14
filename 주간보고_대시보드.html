@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주간보고 대시보드 (초안)</title>
+<style>
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.viz-root{
+  color-scheme:light;
+  --page:#f3f5f9; --surface:#ffffff; --ink:#0b1220; --ink2:#4a5468; --muted:#8a93a5;
+  --grid:#e6e9f0; --axis:#c3c9d6; --border:rgba(15,25,50,.09); --wash:rgba(15,25,50,.05);
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a;
+  --s1:#86b6ef; --s2:#5598e7; --s3:#256abf; --s4:#104281;
+  --pos:#2a78d6; --neg:#e34948; --up-good:#006300; --down-bad:#b42d2d;
+  --serious:#ec835a; --serious-wash:rgba(236,131,90,.13);
+  --spot:#f5a300; --spot2:#ffe08a; --spot-glow:rgba(245,163,0,.55); --spot-wash:rgba(245,163,0,.14);
+  --hero-a:#0f2a5c; --hero-b:#2a78d6; --hero-c:#1baf7a;
+  --shadow:0 1px 2px rgba(15,25,50,.06),0 8px 24px rgba(15,25,50,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])) .viz-root{
+    color-scheme:dark;
+    --page:#0a0d14; --surface:#141923; --ink:#ffffff; --ink2:#c3c9d6; --muted:#8a93a5;
+    --grid:#232a38; --axis:#384154; --border:rgba(255,255,255,.09); --wash:rgba(255,255,255,.07);
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70;
+    --s1:#184f95; --s2:#256abf; --s3:#3987e5; --s4:#86b6ef;
+    --pos:#3987e5; --neg:#e66767; --up-good:#0ca30c; --down-bad:#e66767;
+    --serious-wash:rgba(236,131,90,.14);
+    --spot:#ffd24d; --spot2:#fff0b3; --spot-glow:rgba(255,210,77,.55); --spot-wash:rgba(255,210,77,.12);
+    --hero-a:#07142e; --hero-b:#16427f; --hero-c:#0e6b50;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] .viz-root{
+  color-scheme:dark;
+  --page:#0a0d14; --surface:#141923; --ink:#ffffff; --ink2:#c3c9d6; --muted:#8a93a5;
+  --grid:#232a38; --axis:#384154; --border:rgba(255,255,255,.09); --wash:rgba(255,255,255,.07);
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70;
+  --s1:#184f95; --s2:#256abf; --s3:#3987e5; --s4:#86b6ef;
+  --pos:#3987e5; --neg:#e66767; --up-good:#0ca30c; --down-bad:#e66767;
+  --serious-wash:rgba(236,131,90,.14);
+  --spot:#ffd24d; --spot2:#fff0b3; --spot-glow:rgba(255,210,77,.55); --spot-wash:rgba(255,210,77,.12);
+  --hero-a:#07142e; --hero-b:#16427f; --hero-c:#0e6b50;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0}
+.viz-root{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;font-size:15px;line-height:1.55;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 20px 72px}
+
+/* ---------- hero header ---------- */
+header.top{position:relative;overflow:hidden;border-radius:18px;padding:26px 28px;color:#fff;
+  background:linear-gradient(120deg,var(--hero-a),var(--hero-b) 55%,var(--hero-c));background-size:220% 220%;
+  animation:heroShift 14s ease-in-out infinite;box-shadow:var(--shadow)}
+header.top::before,header.top::after{content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(2px)}
+header.top::before{width:260px;height:260px;right:-60px;top:-110px;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 68%);animation:float 7s ease-in-out infinite}
+header.top::after{width:200px;height:200px;left:38%;bottom:-120px;background:radial-gradient(circle,rgba(255,224,138,.30),transparent 68%);animation:float 9s ease-in-out infinite reverse}
+header.top>*{position:relative;z-index:1}
+.top-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.01em}
+.sub{opacity:.88;font-size:14px;margin-top:4px}
+.badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:3px 12px;font-size:12.5px;background:rgba(255,255,255,.14);color:#fff;backdrop-filter:blur(4px)}
+.badge.draft{font-weight:700;background:rgba(255,255,255,.26)}
+header.top button{color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4)}
+header.top button:hover{background:rgba(255,255,255,.28)}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 14px;cursor:pointer;transition:background .15s,transform .15s}
+button:hover{background:var(--wash)}
+button:active{transform:scale(.97)}
+button:focus-visible,[tabindex]:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--spot);outline-offset:2px}
+
+section{margin-top:34px}
+section>h2{font-size:19px;margin:0 0 4px;font-weight:700;display:flex;align-items:center;gap:10px}
+section>h2::before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--c1),var(--c3))}
+section>.lead{color:var(--ink2);font-size:13.5px;margin:2px 0 14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ---------- reveal / motion ---------- */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@keyframes heroShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(-16px,14px)}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes sweep{0%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
+@keyframes twinkle{0%,100%{transform:scale(0) rotate(0);opacity:0}45%{transform:scale(1) rotate(90deg);opacity:1}70%{transform:scale(.55) rotate(150deg);opacity:.7}}
+@keyframes spin{to{--ang:360deg}}
+@keyframes glowBeat{0%,100%{box-shadow:0 0 0 0 var(--spot-glow),var(--shadow)}50%{box-shadow:0 0 26px 3px var(--spot-glow),var(--shadow)}}
+@keyframes shine{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes ring{0%{transform:scale(.6);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+/* ---------- alert ---------- */
+.alert{display:flex;gap:14px;align-items:flex-start;background:var(--serious-wash);border:1px solid var(--serious);border-left-width:6px;border-radius:14px;padding:14px 18px;margin-top:18px}
+.alert .ico{font-size:22px;line-height:1.2;animation:bob 2.2s ease-in-out infinite}
+.alert ul{margin:4px 0 0;padding-left:18px}
+.alert b{font-weight:700}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;gap:16px;grid-template-columns:2fr repeat(3,1fr)}
+@media (max-width:900px){.kpis{grid-template-columns:1fr 1fr}.kpis .hero{grid-column:1/-1}}
+.tile{position:relative;overflow:hidden}
+.tile::after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c1),var(--c3));opacity:.9}
+.tile .lab{color:var(--ink2);font-size:13.5px}
+.tile .val{font-size:32px;font-weight:700;margin-top:2px;letter-spacing:-.01em}
+.tile .val small{font-size:15px;font-weight:500;color:var(--ink2);margin-left:3px}
+.tile.hero{background:linear-gradient(135deg,var(--surface),var(--spot-wash))}
+.tile.hero::after{background:linear-gradient(90deg,var(--spot),var(--spot2),var(--spot))}
+.tile.hero .val{font-size:64px;line-height:1.1}
+.delta{font-size:13.5px;margin-top:4px;color:var(--ink2)}
+.delta .up{color:var(--up-good);font-weight:700}
+.delta .down{color:var(--down-bad);font-weight:700}
+
+/* ---------- charts ---------- */
+.chart{position:relative;margin-top:10px}
+.crow{position:relative;display:grid;grid-template-columns:200px minmax(0,1fr);align-items:center;min-height:46px;gap:10px;border-radius:12px}
+.crow>*{position:relative;z-index:1}
+.crow .lab{font-size:14px;line-height:1.35;color:var(--ink);padding:4px 0}
+.crow .lab small{color:var(--muted);margin-right:6px}
+.track{position:relative;height:46px;margin-right:92px}
+.track .gl{position:absolute;top:0;bottom:0;width:1px;background:var(--grid)}
+.track .gl.base{background:var(--axis)}
+.bars{position:absolute;left:0;top:11px;height:24px;width:100%;display:flex;align-items:stretch}
+.seg{height:24px;margin-right:2px;flex:0 0 auto;cursor:default;transform-origin:left center;transform:scaleX(0);
+  transition:transform .9s cubic-bezier(.2,.8,.2,1) var(--dl,0ms),filter .15s}
+.seg.neg{transform-origin:right center}
+.play .seg{transform:scaleX(1)}
+.seg.end{border-radius:0 5px 5px 0}
+.seg:hover,.seg:focus-visible{filter:brightness(1.14);outline:2px solid var(--ink);outline-offset:1px}
+.tipval{position:absolute;top:11px;height:24px;line-height:24px;font-size:14px;font-weight:700;white-space:nowrap;color:var(--ink);opacity:0;transition:opacity .5s ease calc(var(--dl,0ms) + 500ms)}
+.play .tipval{opacity:1}
+.tipval small{font-weight:400;color:var(--ink2)}
+.axis{display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px}
+.axis .ticks{position:relative;height:20px;margin-right:92px}
+.axis .ticks span{position:absolute;transform:translateX(-50%);font-size:11.5px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 2px;font-size:12.5px;color:var(--ink2)}
+.legend i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:0 9px;font-size:11.5px;font-weight:700;border:1px solid var(--border);margin-left:8px;color:var(--ink);background:var(--wash);vertical-align:middle}
+
+/* ---------- spotlight (추진 대상) ---------- */
+.pill.pick{color:#2b1b00;border-color:transparent;
+  background:linear-gradient(110deg,#f5a300 20%,#fff1b8 40%,#f5a300 60%);background-size:200% 100%;animation:shine 2.8s linear infinite;
+  box-shadow:0 0 10px var(--spot-glow)}
+.star{display:inline-block;color:var(--spot);margin-right:4px;animation:twinkle 2.4s ease-in-out infinite;text-shadow:0 0 8px var(--spot-glow)}
+.crow.hot::before{content:"";position:absolute;inset:0 -10px;border-radius:14px;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,var(--spot-wash),transparent 78%);border:1px solid var(--spot-glow);animation:pulse 2.6s ease-in-out infinite}
+.crow.hot .seg{position:relative;overflow:hidden;box-shadow:0 0 14px var(--spot-glow)}
+.crow.hot .seg::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);
+  transform:translateX(-120%);animation:sweep 2.8s ease-in-out infinite;animation-delay:calc(var(--dl,0ms) + 1000ms)}
+.crow.hot .tipval{text-shadow:0 0 12px var(--spot-glow)}
+.sp{position:absolute;z-index:3;pointer-events:none;color:var(--spot);font-size:15px;line-height:1;text-shadow:0 0 8px var(--spot-glow),0 0 2px #fff;animation:twinkle 2.2s ease-in-out infinite}
+.spot-strip{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 14px}
+.spot-strip .t{font-weight:700;color:var(--ink2);font-size:13.5px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;font-weight:700;color:#2b1b00;
+  background:linear-gradient(110deg,#f5a300 20%,#fff1b8 42%,#f5a300 64%);background-size:220% 100%;animation:shine 3s linear infinite,glowBeat 2.4s ease-in-out infinite}
+.chip .rk{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#2b1b00;color:#ffd24d;font-size:12px}
+.chip::before{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid var(--spot);animation:ring 2.4s ease-out infinite;pointer-events:none}
+.card.hot{position:relative;border:2px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,conic-gradient(from var(--ang),var(--spot),transparent 28%,var(--spot2) 52%,transparent 78%,var(--spot)) border-box;
+  animation:spin 5s linear infinite,glowBeat 2.8s ease-in-out infinite}
+.card.hot .medal{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;margin-right:8px;font-size:14px;font-weight:800;color:#2b1b00;
+  background:linear-gradient(135deg,#fff1b8,#f5a300);box-shadow:0 0 12px var(--spot-glow)}
+
+/* ---------- tooltip ---------- */
+#tip{position:fixed;z-index:10;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:9px 12px;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:12.5px;max-width:320px;display:none}
+#tip .h{font-weight:700;margin-bottom:4px}
+#tip .r{display:flex;gap:8px;align-items:baseline;margin-top:2px}
+#tip .k{display:inline-block;width:14px;height:3px;border-radius:2px;flex:0 0 auto;transform:translateY(-3px)}
+#tip .v{font-weight:700;color:var(--ink)}
+#tip .n{color:var(--ink2)}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--grid);vertical-align:top}
+th{color:var(--ink2);font-weight:600;font-size:12.5px;white-space:nowrap}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--wash)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.hot td{background:linear-gradient(90deg,var(--spot-wash),transparent 80%)}
+tr.hot td:first-child{box-shadow:inset 4px 0 0 var(--spot);animation:pulse 2.6s ease-in-out infinite}
+.scroll{overflow-x:auto}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--ink2);font-size:13.5px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+.muted{color:var(--muted)}
+
+/* ---------- decision panel ---------- */
+.seg2{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.seg2 button{border:0;border-radius:0;padding:5px 14px;background:transparent}
+.seg2 button[aria-pressed="true"]{background:var(--c1);color:#fff;font-weight:700}
+.seg2 button.no[aria-pressed="true"]{background:var(--ink2);color:var(--surface)}
+input.why{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+.counter{margin-top:12px;font-weight:700}
+.counter.ok{color:var(--up-good)}
+.counter.over{color:var(--down-bad)}
+.cards .card h3{margin:0 0 8px;font-size:16px;display:flex;align-items:center}
+.cards ul{margin:6px 0 0;padding-left:18px}
+.cards .m{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px}
+.cards .m span:nth-child(odd){color:var(--ink2)}
+.chg{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--grid);font-size:13.5px}
+.chg .t{font-weight:700;min-width:92px}
+footer{margin-top:36px;color:var(--muted);font-size:12.5px}
+.replay{margin-left:auto}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .seg{transform:none!important}.tipval{opacity:1!important}.reveal{opacity:1!important;transform:none!important}
+  .sp{display:none}
+}
+@media print{
+  .viz-root{background:#fff}#themebtn,.replay{display:none}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .seg{transform:none!important}.tipval{opacity:1!important}.reveal{opacity:1!important;transform:none!important}
+  header.top{color:#000;background:#fff;border:1px solid #999}.badge{color:#000;border-color:#999}
+}
+@media (forced-colors:active){.seg,.card{border:1px solid CanvasText}.seg{outline:1px solid CanvasText}}
+</style>
+</head>
+<body class="viz-root">
+<div class="wrap">
+<header class="top">
+  <div class="top-row">
+    <div>
+      <h1>영업팀 주간보고 대시보드</h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="badges">
+      <span class="badge draft">초안 · 영업그룹장 승인 전</span>
+      <span class="badge" id="b-week"></span>
+      <span class="badge">가상 더미데이터 · 단위 억원</span>
+      <button id="themebtn" type="button" aria-label="화면 테마 전환">테마 전환</button>
+      <button id="replaybtn" type="button" aria-label="애니메이션 다시 보기">▶ 다시 보기</button>
+    </div>
+  </div>
+</header>
+
+<section id="alert-sec" aria-label="확인 필요" style="margin-top:0"></section>
+<section id="kpi-sec" aria-label="핵심 지표" class="reveal"></section>
+
+<section id="cand-sec" class="reveal">
+  <h2>수주 집중 관계사 후보 <span class="muted" style="font-weight:400;font-size:14px">(영업그룹장 1차 판단용)</span></h2>
+  <p class="lead" id="cand-lead"></p>
+  <div class="spot-strip" id="spot-strip"></div>
+  <div class="card">
+    <div class="legend" id="cand-legend"></div>
+    <div class="chart" id="cand-chart"></div>
+    <details><summary>점수표로 보기</summary><div class="scroll" id="cand-table"></div></details>
+  </div>
+  <div class="grid g3 cards" id="cand-cards" style="margin-top:16px"></div>
+  <div class="card" style="margin-top:16px">
+    <h2 style="font-size:16px;margin:0 0 4px;font-weight:700;display:block">그룹장 1차 판단 기록</h2>
+    <p class="lead" style="margin-bottom:8px">자동 후보는 참고용입니다. 확정/제외를 선택하고 조정 사유를 적으세요. 이 브라우저에만 저장되며, 최종 확정은 보고서의 판단 기록란에 옮겨 적습니다.</p>
+    <div class="scroll"><table id="decide"></table></div>
+    <div class="counter" id="decide-count"></div>
+    <div style="margin-top:8px"><button type="button" id="decide-reset">선택 초기화</button></div>
+  </div>
+</section>
+
+<section id="trend-sec" class="reveal">
+  <h2>관계사 경영동향</h2>
+  <p class="lead">전주 대비 매출 증감률과 영업이익률입니다. ✦ 표시는 수주 추진 대상 후보입니다. 막대에 마우스를 올리면 금주·전주 수치가 보입니다.</p>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin:0;font-size:15px;font-weight:700">전주 대비 매출 증감률</h3>
+      <div class="legend" id="chg-legend"></div><div class="chart" id="chg-chart"></div></div>
+    <div class="card"><h3 style="margin:0;font-size:15px;font-weight:700">영업이익률</h3>
+      <div class="chart" id="mar-chart"></div></div>
+  </div>
+  <details class="card" style="margin-top:16px"><summary>경영동향 표로 보기</summary><div class="scroll" id="trend-table"></div></details>
+</section>
+
+<section id="pipe-sec" class="reveal">
+  <h2>수주 파이프라인</h2>
+  <p class="lead">관계사별 진행단계 금액입니다. 진행이 앞설수록 진한 색입니다. 수주확정만 확정 수주 합계에 들어갑니다.</p>
+  <div class="grid g2">
+    <div class="card"><div class="legend" id="pipe-legend"></div><div class="chart" id="pipe-chart"></div></div>
+    <div class="card"><h3 style="margin:0 0 6px;font-size:15px;font-weight:700" id="chg-title">전주 대비 수주 변동</h3><div id="chg-list"></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:15px;font-weight:700">수주 건 목록</h3><div class="scroll" id="orders-table"></div></div>
+</section>
+
+<section id="log-sec" class="reveal">
+  <h2>정제 이력 및 미확인 사항</h2>
+  <div class="card"><div class="scroll" id="log-table"></div></div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const D = {"week": "2026-W41", "prev_week": "2026-W40", "asof": "2026-10-14", "tot": {"rev": 658.0, "prev": 639.0, "op": 52.0, "cum": 28640.0, "cumop": 2610.0}, "tot_chg": 0.0297339593114241, "conf": 540.0, "allp": 1030.0, "prev_conf": 230.0, "prev_allp": 995.0, "rows": [{"co": "하이테크소재", "chg": 0.07142857142857142, "mar": 0.09166666666666666, "issue": "신규 라인 증설 완료, 4분기 양산 개시 예정", "rev": 120.0, "prev": 112.0, "op": 11.0, "cum": 5140.0, "cumop": 520.0}, {"co": "하이테크전자", "chg": -0.05963302752293578, "mar": 0.06829268292682927, "issue": "원자재 가격 상승으로 마진 압박, 가격 인상 협의 중", "rev": 205.0, "prev": 218.0, "op": 14.0, "cum": 9100.0, "cumop": 880.0}, {"co": "하이테크반도체장비", "chg": 0.1, "mar": 0.10227272727272728, "issue": "해외 고객사 장비 납품 확대, 인력 충원 진행", "rev": 88.0, "prev": 80.0, "op": 9.0, "cum": 3900.0, "cumop": 410.0}, {"co": "하이테크디스플레이", "chg": 0.0, "mar": 0.04, "issue": "패널 수요 둔화, 가동률 82% 수준 유지", "rev": 150.0, "prev": 150.0, "op": 6.0, "cum": 6500.0, "cumop": 270.0}, {"co": "하이테크에너지솔루션", "chg": 0.20253164556962025, "mar": 0.12631578947368421, "issue": "북미 ESS 프로젝트 본격화, 수율 개선 효과", "rev": 95.0, "prev": 79.0, "op": 12.0, "cum": 4000.0, "cumop": 530.0}], "orders": [{"co": "하이테크소재", "cust": "A전자", "prod": "OLED 소재 공급", "amt": 85.0, "stage": "계약", "due": "2026-11-30", "rec": "2026-12", "notes": []}, {"co": "하이테크전자", "cust": "B모빌리티", "prod": "차량용 MLCC", "amt": 150.0, "stage": "협상", "due": "2026-12-15", "rec": "2027-01", "notes": []}, {"co": "하이테크반도체장비", "cust": "C반도체", "prod": "식각장비 2대", "amt": 230.0, "stage": "수주확정", "due": "2027-02-28", "rec": "2027-03", "notes": []}, {"co": "하이테크디스플레이", "cust": "D디바이스", "prod": "중소형 패널", "amt": 60.0, "stage": "견적", "due": "2027-01-20", "rec": "2027-02", "notes": []}, {"co": "하이테크에너지솔루션", "cust": "E에너지", "prod": "ESS 배터리 팩", "amt": 310.0, "stage": "수주확정", "due": "2026-12-20", "rec": "2026-12", "notes": []}, {"co": "하이테크전자", "cust": "F통신", "prod": "5G 기판", "amt": 75.0, "stage": "협상", "due": "2027-01-10", "rec": "2027-01", "notes": []}, {"co": "하이테크반도체장비", "cust": "G파운드리", "prod": "세정장비", "amt": 120.0, "stage": "견적", "due": "2027-03-31", "rec": "2027-04", "notes": []}], "changes": [{"kind": "단계 상승", "tag": "하이테크소재 A전자 OLED 소재 공급", "prev": "협상", "cur": "계약", "note": ""}, {"kind": "단계 상승", "tag": "하이테크에너지솔루션 E에너지 ESS 배터리 팩", "prev": "협상", "cur": "수주확정", "note": ""}, {"kind": "신규", "tag": "하이테크전자 F통신 5G 기판", "prev": "-", "cur": "협상 75억원", "note": ""}, {"kind": "납기 변경", "tag": "하이테크반도체장비 G파운드리 세정장비", "prev": "2027-03-15", "cur": "2027-03-31", "note": ""}, {"kind": "소멸", "tag": "하이테크전자 Z모듈 전원 모듈", "prev": "협상 40억원", "cur": "-", "note": "사유 미확인(취소·실주·누락 여부)"}], "log": [{"kind": "미확인", "code": "GONE", "where": "하이테크전자 Z모듈 전원 모듈", "text": "전주 수주 건이 이번 주 파일에 없음", "action": "취소·실주·누락 여부 확인 요청"}], "cand": {"items": [{"co": "하이테크소재", "mar": 0.09166666666666666, "delta": 0.23809523809523725, "a": 2.5, "b": 4.0, "c": 5.0, "total": 3.8333333333333335, "rank": 3, "ratio": 0.0, "pipe": 85.0, "conf": 0, "days": 47, "na": [], "near": {"due": "2026-11-30", "cust": "A전자", "prod": "OLED 소재 공급", "stage": "계약", "amt": 85.0}}, {"co": "하이테크전자", "mar": 0.06829268292682927, "delta": -0.05146565227120148, "a": 4.0, "b": 4.0, "c": 4.0, "total": 4.0, "rank": 1, "ratio": 0.0, "pipe": 225.0, "conf": 0, "days": 62, "na": [], "near": {"due": "2026-12-15", "cust": "B모빌리티", "prod": "차량용 MLCC", "stage": "협상", "amt": 150.0}}, {"co": "하이테크반도체장비", "mar": 0.10227272727272728, "delta": 0.22727272727272735, "a": 2.5, "b": 2.0, "c": 2.0, "total": 2.1666666666666665, "rank": 4, "ratio": 0.6571428571428571, "pipe": 350.0, "conf": 230.0, "days": 168, "na": [], "near": {"due": "2027-03-31", "cust": "G파운드리", "prod": "세정장비", "stage": "견적", "amt": 120.0}}, {"co": "하이테크디스플레이", "mar": 0.04, "delta": -0.6666666666666667, "a": 5.0, "b": 4.0, "c": 3.0, "total": 4.0, "rank": 2, "ratio": 0.0, "pipe": 60.0, "conf": 0, "days": 98, "na": [], "near": {"due": "2027-01-20", "cust": "D디바이스", "prod": "중소형 패널", "stage": "견적", "amt": 60.0}}, {"co": "하이테크에너지솔루션", "mar": 0.12631578947368421, "delta": 1.2391738840772826, "a": 1.0, "b": 1.0, "c": 0.0, "total": 0.6666666666666666, "rank": 5, "ratio": 1.0, "pipe": 310.0, "conf": 310.0, "days": null, "na": [], "near": null}], "top": ["하이테크전자", "하이테크디스플레이", "하이테크소재"], "ties": [], "weights": {"이익률": 1.0, "확정부족": 1.0, "납기임박": 1.0}, "has_prev": true}};
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const n0 = (v) => v == null ? "미확인" : Math.round(v).toLocaleString("ko-KR");
+const p1 = (v) => v == null ? "산출 불가" : (v * 100).toFixed(1) + "%";
+const sg = (v, d) => (v >= 0 ? "+" : "-") + Math.abs(v).toFixed(d == null ? 1 : d);
+const dday = (due) => due ? Math.round((Date.parse(due) - Date.parse(D.asof)) / 864e5) : null;
+const STAGES = ["견적", "협상", "계약", "수주확정"];
+const STAGE_VAR = { "견적": "--s1", "협상": "--s2", "계약": "--s3", "수주확정": "--s4" };
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isHot = (co) => D.cand.top.indexOf(co) >= 0;
+const counters = [];
+
+/* ---------- tooltip ---------- */
+const tip = $("tip");
+function showTip(ev, node) {
+  tip.replaceChildren(node); tip.style.display = "block";
+  const r = ev.currentTarget.getBoundingClientRect();
+  const x = ev.clientX != null && ev.type !== "focus" ? ev.clientX : r.left + r.width / 2;
+  const y = ev.clientY != null && ev.type !== "focus" ? ev.clientY : r.top;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + 14)) + "px";
+  tip.style.top = Math.max(8, Math.min(innerHeight - h - 8, y - h - 10 < 8 ? y + 18 : y - h - 10)) + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+function tipNode(head, rows) {
+  const f = document.createDocumentFragment();
+  f.appendChild(el("div", "h", head));
+  rows.forEach((r) => {
+    const d = el("div", "r");
+    if (r.color) { const k = el("span", "k"); k.style.background = r.color; d.appendChild(k); }
+    d.appendChild(el("span", "v", r.value)); d.appendChild(el("span", "n", r.name));
+    f.appendChild(d);
+  });
+  return f;
+}
+function hook(node, mk) {
+  node.addEventListener("pointermove", (e) => showTip(e, mk()));
+  node.addEventListener("focus", (e) => showTip(e, mk()));
+  node.addEventListener("pointerleave", hideTip); node.addEventListener("blur", hideTip);
+}
+
+/* ---------- helpers ---------- */
+function table(cols, rows) {
+  const t = el("table"); const th = el("thead"); const tr = el("tr");
+  cols.forEach((c) => { tr.appendChild(el("th", c.num ? "num" : "", c.h)); });
+  th.appendChild(tr); t.appendChild(th);
+  const tb = el("tbody");
+  rows.forEach((r) => { const row = el("tr"); cols.forEach((c) => { row.appendChild(el("td", c.num ? "num" : "", c.f(r))); }); tb.appendChild(row); });
+  t.appendChild(tb); return t;
+}
+function sparkle(host, left, top, delay, size) {
+  const s = el("span", "sp", "✦"); s.style.left = left; s.style.top = top; s.style.animationDelay = delay + "ms";
+  if (size) s.style.fontSize = size + "px"; s.setAttribute("aria-hidden", "true"); host.appendChild(s);
+}
+function labelNode(r) {
+  const lab = el("div", "lab");
+  if (r.hot) lab.appendChild(el("span", "star", "✦"));
+  if (r.sub) lab.appendChild(el("small", "", r.sub));
+  lab.appendChild(document.createTextNode(r.label));
+  if (r.pill) lab.appendChild(el("span", "pill" + (r.hot ? " pick" : ""), r.pill));
+  lab.title = r.label; return lab;
+}
+function countUp(node, to, fmt, dur) {
+  counters.push({ node: node, to: to, fmt: fmt, dur: dur || 1200 });
+  node.textContent = REDUCE ? fmt(to) : fmt(0);
+}
+function runCounters() {
+  counters.forEach((c) => {
+    if (REDUCE) { c.node.textContent = c.fmt(c.to); return; }
+    const t0 = performance.now();
+    (function step(t) { const k = Math.min(1, (t - t0) / c.dur); const e = 1 - Math.pow(1 - k, 3); c.node.textContent = c.fmt(c.to * e); if (k < 1) requestAnimationFrame(step); else c.node.textContent = c.fmt(c.to); })(t0);
+  });
+}
+
+/* ---------- horizontal bar chart (stacked or single), value at tip ---------- */
+function hbar(host, rows, o) {
+  host.replaceChildren(); const max = o.max;
+  rows.forEach((r, ri) => {
+    const row = el("div", "crow" + (r.hot ? " hot" : ""));
+    row.appendChild(labelNode(r));
+    const track = el("div", "track");
+    o.ticks.forEach((t) => { const g = el("div", "gl" + (t === 0 ? " base" : "")); g.style.left = (t / max * 100) + "%"; track.appendChild(g); });
+    const bars = el("div", "bars"); let acc = 0;
+    const live = r.segs.filter((s) => s.v > 0);
+    live.forEach((s, i) => {
+      const b = el("div", "seg" + (i === live.length - 1 ? " end" : ""));
+      b.style.width = "calc(" + (s.v / max * 100) + "% - " + (i === live.length - 1 ? 0 : 2) + "px)";
+      b.style.setProperty("--dl", (ri * 120 + i * 170) + "ms");
+      b.style.background = s.color; b.tabIndex = 0; b.setAttribute("role", "img");
+      b.setAttribute("aria-label", r.label + " " + s.name + " " + s.text);
+      hook(b, () => tipNode(r.label, r.tip(s))); bars.appendChild(b); acc += s.v;
+    });
+    if (!live.length) { const z = el("div", "seg end"); z.style.width = "3px"; z.style.background = "var(--axis)"; z.style.setProperty("--dl", (ri * 120) + "ms"); z.tabIndex = 0; hook(z, () => tipNode(r.label, r.tip(r.segs[0]))); bars.appendChild(z); }
+    track.appendChild(bars);
+    const tv = el("div", "tipval"); tv.style.setProperty("--dl", (ri * 120 + live.length * 170) + "ms"); tv.style.left = "calc(" + (acc / max * 100) + "% + 10px)";
+    tv.appendChild(document.createTextNode(r.valueText)); if (r.valueSub) tv.appendChild(el("small", "", " " + r.valueSub));
+    track.appendChild(tv);
+    if (r.hot && !REDUCE) {
+      const end = (acc / max * 100);
+      sparkle(track, "calc(" + end + "% - 6px)", "-4px", 0, 16);
+      sparkle(track, "calc(" + (end * 0.55) + "% )", "26px", 700, 12);
+      sparkle(track, "calc(" + end + "% + 56px)", "2px", 1300, 13);
+    }
+    row.appendChild(track); host.appendChild(row);
+  });
+  const ax = el("div", "axis"); ax.appendChild(el("div")); const tk = el("div", "ticks");
+  o.ticks.forEach((t) => { const s = el("span", "", o.tickText ? o.tickText(t) : String(t)); s.style.left = (t / max * 100) + "%"; tk.appendChild(s); });
+  ax.appendChild(tk); host.appendChild(ax);
+}
+
+/* ---------- diverging bar chart (zero-centered) ---------- */
+function divbar(host, rows, lim) {
+  host.replaceChildren(); const ticks = [-lim, -lim / 2, 0, lim / 2, lim];
+  rows.forEach((r, ri) => {
+    const row = el("div", "crow" + (r.hot ? " hot" : "")); row.appendChild(labelNode(r));
+    const track = el("div", "track"); track.style.marginRight = "0";
+    ticks.forEach((t) => { const g = el("div", "gl" + (t === 0 ? " base" : "")); g.style.left = ((t + lim) / (2 * lim) * 100) + "%"; track.appendChild(g); });
+    const mid = 50;
+    if (r.v != null) {
+      const w = Math.abs(r.v) / (2 * lim) * 100;
+      const b = el("div", "seg" + (r.v < 0 ? " neg" : "")); b.tabIndex = 0; b.setAttribute("role", "img"); b.setAttribute("aria-label", r.label + " " + r.valueText);
+      b.style.position = "absolute"; b.style.top = "11px"; b.style.marginRight = "0"; b.style.width = Math.max(w, 0.4) + "%";
+      b.style.setProperty("--dl", (ri * 120) + "ms");
+      if (r.v >= 0) { b.style.left = mid + "%"; b.style.background = "var(--pos)"; b.style.borderRadius = "0 5px 5px 0"; }
+      else { b.style.left = (mid - w) + "%"; b.style.background = "var(--neg)"; b.style.borderRadius = "5px 0 0 5px"; }
+      hook(b, () => tipNode(r.label, r.tip)); track.appendChild(b);
+      const tv = el("div", "tipval", r.valueText); tv.style.setProperty("--dl", (ri * 120) + "ms");
+      if (r.v >= 0) tv.style.left = "calc(" + (mid + w) + "% + 8px)"; else tv.style.right = "calc(" + (100 - mid + w) + "% + 8px)";
+      track.appendChild(tv);
+      if (r.hot && !REDUCE) sparkle(track, "calc(" + (r.v >= 0 ? mid + w : mid - w) + "% - 6px)", "-4px", 200, 14);
+    } else { const tv = el("div", "tipval", "산출 불가"); tv.style.left = "calc(50% + 8px)"; tv.style.color = "var(--muted)"; track.appendChild(tv); }
+    row.appendChild(track); host.appendChild(row);
+  });
+  const ax = el("div", "axis"); ax.appendChild(el("div")); const tk = el("div", "ticks"); tk.style.marginRight = "0";
+  ticks.forEach((t) => { const s = el("span", "", (t > 0 ? "+" : "") + t + "%"); s.style.left = ((t + lim) / (2 * lim) * 100) + "%"; tk.appendChild(s); });
+  ax.appendChild(tk); host.appendChild(ax);
+}
+
+function legend(host, items) {
+  host.replaceChildren();
+  items.forEach((it) => { const s = el("span"); const i = el("i"); i.style.background = it.color; s.appendChild(i); s.appendChild(document.createTextNode(it.text)); host.appendChild(s); });
+}
+
+/* ---------- header / alert / KPI ---------- */
+function renderTop() {
+  $("sub").textContent = "보고 주차 " + D.week + " · 기준일 " + D.asof + (D.prev_week ? " · 전주 " + D.prev_week + " 대비" : " · 전주 파일 없음");
+  $("b-week").textContent = D.week;
+  const unk = D.log.filter((x) => x.kind === "미확인");
+  const host = $("alert-sec"); host.replaceChildren();
+  const a = el("div", "alert"); a.setAttribute("role", "note"); a.appendChild(el("span", "ico", "⚠"));
+  const body = el("div"); body.appendChild(el("b", "", unk.length ? "확인 필요 " + unk.length + "건 (결재 전 확인)" : "확인 필요 항목 없음"));
+  if (unk.length) { const ul = el("ul"); unk.forEach((x) => ul.appendChild(el("li", "", x.where + ": " + x.text + " → " + x.action))); body.appendChild(ul); }
+  a.appendChild(body); host.appendChild(a);
+
+  const k = $("kpi-sec"); k.replaceChildren(); const g = el("div", "kpis");
+  const dl = (cur, prev, unit) => {
+    const d = el("div", "delta");
+    if (prev == null) { d.textContent = "전주 비교 불가"; return d; }
+    const diff = cur - prev;
+    d.appendChild(el("span", diff > 0 ? "up" : diff < 0 ? "down" : "", (diff > 0 ? "▲ " : diff < 0 ? "▼ " : "– ") + sg(diff, 0) + unit));
+    d.appendChild(document.createTextNode(" 전주 " + n0(prev) + unit + " 대비")); return d;
+  };
+  const tile = (cls, lab, to, unit, delta) => {
+    const t = el("div", "card tile " + cls); t.appendChild(el("div", "lab", lab));
+    const v = el("div", "val"); const num = el("span", "num"); v.appendChild(num); v.appendChild(el("small", "", unit));
+    countUp(num, to, n0); t.appendChild(v); if (delta) t.appendChild(delta); return t;
+  };
+  g.appendChild(tile("hero", "수주확정 합계", D.conf, "억원", dl(D.conf, D.prev_conf, "억원")));
+  g.appendChild(tile("", "전체 파이프라인", D.allp, "억원", dl(D.allp, D.prev_allp, "억원")));
+  const rd = el("div", "delta");
+  if (D.tot_chg != null) { rd.appendChild(el("span", D.tot_chg >= 0 ? "up" : "down", (D.tot_chg >= 0 ? "▲ +" : "▼ ") + (D.tot_chg * 100).toFixed(1) + "%")); rd.appendChild(document.createTextNode(" 전주 " + n0(D.tot.prev) + "억원 대비")); }
+  else rd.textContent = D.rows.every((r) => r.prev != null) ? "" : "전주 결측으로 증감률 산출 불가";
+  g.appendChild(tile("", "금주 매출 합계", D.tot.rev, "억원", rd));
+  const mg = D.tot.rev ? D.tot.op / D.tot.rev : null;
+  g.appendChild(tile("", "금주 영업이익 합계", D.tot.op, "억원", el("div", "delta", "영업이익률 " + p1(mg))));
+  k.appendChild(g);
+}
+
+/* ---------- candidates ---------- */
+function contrib(it) {
+  const w = D.cand.weights, sw = w["이익률"] + w["확정부족"] + w["납기임박"];
+  return [
+    { name: "영업이익률 낮음·악화", v: it.a == null ? 0 : w["이익률"] * it.a / sw, score: it.a, w: w["이익률"], color: "var(--c1)" },
+    { name: "파이프라인 대비 확정 부족", v: it.b == null ? 0 : w["확정부족"] * it.b / sw, score: it.b, w: w["확정부족"], color: "var(--c2)" },
+    { name: "납기·매출 인식 임박", v: it.c == null ? 0 : w["납기임박"] * it.c / sw, score: it.c, w: w["납기임박"], color: "var(--c3)" },
+  ];
+}
+function renderCand() {
+  const C = D.cand, w = C.weights;
+  $("cand-lead").textContent = "세 기준을 관계사 " + C.items.length + "곳 사이의 상대 순위로 점수화했습니다(5점=가장 시급, 기준값 없음). 가중치 이익률 " + w["이익률"] + " / 확정부족 " + w["확정부족"] + " / 납기임박 " + w["납기임박"] + ". 막대 길이는 종합 점수이고 색은 기준별 기여분입니다. ✦ 반짝이는 곳이 자동 선정된 추진 대상 후보이며, 최종 3곳은 그룹장이 정합니다." + (C.has_prev ? "" : " (전주 파일이 없어 이익률 악화는 반영하지 않았습니다.)") + (C.ties.length ? " 3위 경계에서 동점이 있어 자동으로 정하지 않았습니다: " + C.ties.join(", ") + "." : "");
+  legend($("cand-legend"), [{ color: "var(--c1)", text: "영업이익률 낮음·악화" }, { color: "var(--c2)", text: "파이프라인 대비 확정 부족" }, { color: "var(--c3)", text: "납기·매출 인식 임박" }]);
+  const ordered = C.items.filter((x) => x.total != null).sort((a, b) => a.rank - b.rank).concat(C.items.filter((x) => x.total == null));
+
+  const strip = $("spot-strip"); strip.replaceChildren(); strip.appendChild(el("span", "t", "추진 대상 후보"));
+  ordered.filter((x) => C.top.indexOf(x.co) >= 0).forEach((it) => {
+    const c = el("span", "chip"); c.appendChild(el("span", "rk", String(it.rank))); c.appendChild(document.createTextNode("✦ " + it.co)); strip.appendChild(c);
+  });
+  if (!C.top.length) strip.appendChild(el("span", "muted", "점수를 산출할 수 있는 관계사가 없습니다."));
+
+  const rows = ordered.map((it) => {
+    const parts = contrib(it);
+    return {
+      label: it.co, sub: it.rank ? "#" + it.rank : "–", hot: isHot(it.co), pill: isHot(it.co) ? "추진 대상" : (C.ties.indexOf(it.co) >= 0 ? "동점" : null),
+      segs: parts.map((p) => ({ v: p.v, color: p.color, name: p.name, text: p.v.toFixed(1) + "점" })),
+      valueText: it.total == null ? "산출 불가" : it.total.toFixed(1), valueSub: it.total == null ? "" : "점",
+      tip: () => it.total == null ? [{ value: "산출 불가", name: it.na.join(", ") + " 결측" }]
+        : parts.map((p) => ({ color: p.color, value: p.v.toFixed(2) + "점", name: p.name + " (점수 " + (p.score == null ? "-" : p.score.toFixed(1)) + " × 가중 " + p.w + ")" })).concat([{ value: it.total.toFixed(1) + "점", name: "종합" }]),
+    };
+  });
+  hbar($("cand-chart"), rows, { max: 5, ticks: [0, 1, 2, 3, 4, 5], tickText: (t) => t + "점" });
+
+  $("cand-table").replaceChildren(table([
+    { h: "순위", f: (r) => r.rank ? String(r.rank) : "산출 불가" }, { h: "관계사", f: (r) => r.co },
+    { h: "영업이익률", num: 1, f: (r) => p1(r.mar) }, { h: "전주 대비(%p)", num: 1, f: (r) => r.delta == null ? "-" : sg(r.delta) },
+    { h: "이익률 점수", num: 1, f: (r) => r.a == null ? "-" : r.a.toFixed(1) },
+    { h: "확정비율", num: 1, f: (r) => r.ratio == null ? "산출 불가" : (r.ratio * 100).toFixed(0) + "% (" + n0(r.conf) + "/" + n0(r.pipe) + "억)" },
+    { h: "확정부족 점수", num: 1, f: (r) => r.b == null ? "-" : r.b.toFixed(1) },
+    { h: "가장 이른 미확정 납기", f: (r) => r.near ? r.near.due + " (" + r.days + "일)" : (r.c === 0 ? "미확정 건 없음" : "미확인") },
+    { h: "납기임박 점수", num: 1, f: (r) => r.c == null ? "-" : r.c.toFixed(1) },
+    { h: "종합", num: 1, f: (r) => r.total == null ? "-" : r.total.toFixed(1) },
+  ], ordered));
+
+  const cards = $("cand-cards"); cards.replaceChildren();
+  const issue = (co) => (D.rows.find((r) => r.co === co) || {}).issue;
+  ordered.filter((x) => C.top.indexOf(x.co) >= 0).forEach((it, idx) => {
+    const c = el("div", "card hot"); const h = el("h3"); h.appendChild(el("span", "medal", String(it.rank)));
+    h.appendChild(document.createTextNode(it.co + " · 종합 " + it.total.toFixed(1) + "점")); c.appendChild(h);
+    if (!REDUCE) { sparkle(c, "calc(100% - 26px)", "10px", idx * 300, 16); sparkle(c, "calc(100% - 52px)", "26px", idx * 300 + 900, 11); }
+    const m = el("div", "m");
+    [["영업이익률", p1(it.mar) + (it.delta == null ? "" : " (전주 대비 " + sg(it.delta) + "%p)")],
+     ["확정비율", it.ratio == null ? "산출 불가" : (it.ratio * 100).toFixed(0) + "% (" + n0(it.conf) + "/" + n0(it.pipe) + "억원)"],
+     ["이른 미확정 납기", it.near ? it.near.due + " (D-" + it.days + ")" : "없음"]].forEach((kv) => { m.appendChild(el("span", "", kv[0])); m.appendChild(el("span", "", kv[1])); });
+    c.appendChild(m);
+    const pend = D.orders.filter((o) => o.co === it.co && o.stage !== "수주확정" && o.amt != null);
+    if (pend.length) { c.appendChild(el("div", "muted", "미확정 수주")); const ul = el("ul"); pend.forEach((o) => ul.appendChild(el("li", "", o.cust + " " + o.prod + " " + n0(o.amt) + "억원 (" + o.stage + ", 납기 " + (o.due || "미확인") + ")"))); c.appendChild(ul); }
+    const iss = el("div", "muted", "참고 이슈(점수 미반영): " + issue(it.co)); iss.style.marginTop = "8px"; c.appendChild(iss);
+    cards.appendChild(c);
+  });
+
+  /* decision panel */
+  const KEY = "weekly-decide-" + D.week; let st = {};
+  try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { st = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* 저장 불가 환경 */ } };
+  const tbl = $("decide");
+  function draw() {
+    tbl.replaceChildren();
+    const thd = el("thead"); const hr = el("tr"); ["관계사", "자동 후보", "그룹장 판단", "조정·교체 사유"].forEach((x) => hr.appendChild(el("th", "", x))); thd.appendChild(hr); tbl.appendChild(thd);
+    const tb = el("tbody");
+    ordered.forEach((it) => {
+      const tr = el("tr", isHot(it.co) ? "hot" : "");
+      const t1 = el("td"); if (isHot(it.co)) t1.appendChild(el("span", "star", "✦")); t1.appendChild(document.createTextNode(it.co)); tr.appendChild(t1);
+      tr.appendChild(el("td", "", isHot(it.co) ? "추진 대상 후보 #" + it.rank : (C.ties.indexOf(it.co) >= 0 ? "동점" : "-")));
+      const td = el("td"); const g = el("div", "seg2"); g.setAttribute("role", "group"); g.setAttribute("aria-label", it.co + " 판단");
+      [["yes", "확정"], ["no", "제외"]].forEach((o) => {
+        const b = el("button", o[0], o[1]); b.type = "button"; b.setAttribute("aria-pressed", String((st[it.co] || {}).d === o[0]));
+        b.addEventListener("click", () => { const cur = st[it.co] || {}; cur.d = cur.d === o[0] ? null : o[0]; st[it.co] = cur; save(); draw(); }); g.appendChild(b);
+      });
+      td.appendChild(g); tr.appendChild(td);
+      const tw = el("td"); const inp = el("input", "why"); inp.type = "text"; inp.placeholder = "자동 후보와 다르게 판단한 이유"; inp.setAttribute("aria-label", it.co + " 조정 사유");
+      inp.value = (st[it.co] || {}).why || ""; inp.addEventListener("input", () => { const cur = st[it.co] || {}; cur.why = inp.value; st[it.co] = cur; save(); });
+      tw.appendChild(inp); tr.appendChild(tw); tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    const n = Object.values(st).filter((x) => x && x.d === "yes").length; const cnt = $("decide-count");
+    cnt.className = "counter " + (n === 3 ? "ok" : n > 3 ? "over" : "");
+    cnt.textContent = n === 3 ? "✔ 3곳 확정 완료" : n > 3 ? "⚠ " + n + "곳 선택됨 — 3곳으로 줄여야 합니다" : "확정 " + n + "/3 — 3곳을 확정하세요";
+  }
+  draw();
+  $("decide-reset").addEventListener("click", () => { st = {}; save(); draw(); });
+}
+
+/* ---------- trend ---------- */
+function renderTrend() {
+  legend($("chg-legend"), [{ color: "var(--pos)", text: "증가 (+)" }, { color: "var(--neg)", text: "감소 (−)" }]);
+  const vals = D.rows.map((r) => r.chg).filter((v) => v != null).map((v) => Math.abs(v * 100));
+  const lim = Math.max(10, Math.ceil(Math.max.apply(null, vals.concat([0])) / 10) * 10);
+  divbar($("chg-chart"), D.rows.map((r) => ({
+    label: r.co, hot: isHot(r.co), v: r.chg == null ? null : r.chg * 100, valueText: r.chg == null ? "" : sg(r.chg * 100) + "%",
+    tip: [{ value: n0(r.rev) + "억원", name: "금주 매출" }, { value: n0(r.prev) + "억원", name: "전주 매출" }, { value: r.chg == null ? "산출 불가" : sg(r.chg * 100) + "%", name: "전주 대비" }],
+  })), lim);
+  const mmax = Math.max(15, Math.ceil(Math.max.apply(null, D.rows.map((r) => (r.mar || 0) * 100)) / 5) * 5);
+  const items = D.cand.items;
+  hbar($("mar-chart"), D.rows.map((r) => {
+    const it = items.find((x) => x.co === r.co) || {};
+    return { label: r.co, hot: isHot(r.co), segs: [{ v: r.mar == null ? 0 : r.mar * 100, color: "var(--c1)", name: "영업이익률", text: p1(r.mar) }], valueText: p1(r.mar),
+      tip: () => [{ color: "var(--c1)", value: p1(r.mar), name: "영업이익률" }, { value: n0(r.op) + "억원", name: "금주 영업이익" }, { value: it.delta == null ? "-" : sg(it.delta) + "%p", name: "전주 대비 이익률 변동" }] };
+  }), { max: mmax, ticks: [0, mmax / 3, 2 * mmax / 3, mmax].map((t) => Math.round(t * 10) / 10), tickText: (t) => t + "%" });
+  $("trend-table").replaceChildren(table([
+    { h: "관계사", f: (r) => r.co }, { h: "금주 매출", num: 1, f: (r) => n0(r.rev) }, { h: "전주 매출", num: 1, f: (r) => n0(r.prev) },
+    { h: "전주 대비", num: 1, f: (r) => p1(r.chg) }, { h: "금주 영업이익", num: 1, f: (r) => n0(r.op) }, { h: "영업이익률", num: 1, f: (r) => p1(r.mar) },
+    { h: "누적 매출", num: 1, f: (r) => n0(r.cum) }, { h: "누적 영업이익", num: 1, f: (r) => n0(r.cumop) }, { h: "주요 이슈", f: (r) => r.issue },
+  ], D.rows));
+}
+
+/* ---------- pipeline ---------- */
+function renderPipe() {
+  legend($("pipe-legend"), STAGES.map((s) => ({ color: "var(" + STAGE_VAR[s] + ")", text: s })));
+  const rows = D.rows.map((r) => {
+    const os = D.orders.filter((o) => o.co === r.co && o.amt != null);
+    const by = {}; STAGES.forEach((s) => { by[s] = os.filter((o) => o.stage === s).reduce((a, o) => a + o.amt, 0); });
+    const tot = STAGES.reduce((a, s) => a + by[s], 0);
+    return { label: r.co, hot: isHot(r.co), segs: STAGES.map((s) => ({ v: by[s], color: "var(" + STAGE_VAR[s] + ")", name: s, text: n0(by[s]) + "억원" })), valueText: n0(tot), valueSub: "억",
+      tip: () => STAGES.map((s) => ({ color: "var(" + STAGE_VAR[s] + ")", value: n0(by[s]) + "억원", name: s })).concat([{ value: n0(tot) + "억원", name: "파이프라인 합계" }]) };
+  });
+  const mx = Math.max.apply(null, rows.map((r) => r.segs.reduce((a, s) => a + s.v, 0)));
+  const top = Math.ceil(mx / 100) * 100 || 100;
+  hbar($("pipe-chart"), rows, { max: top, ticks: [0, top / 2, top], tickText: (t) => n0(t) });
+
+  $("chg-title").textContent = D.prev_week ? "전주 대비 수주 변동 (" + D.prev_week + " → " + D.week + ")" : "전주 대비 수주 변동";
+  const host = $("chg-list"); host.replaceChildren();
+  if (!D.prev_week) host.appendChild(el("div", "muted", "전주 파일이 없어 비교하지 않았습니다."));
+  else if (!D.changes.length) host.appendChild(el("div", "muted", "변동 없음"));
+  const icon = { "신규": "＋", "단계 상승": "▲", "단계 하락": "▼", "금액 변경": "≠", "납기 변경": "◷", "소멸": "✕" };
+  const ord = ["신규", "단계 상승", "단계 하락", "금액 변경", "납기 변경", "소멸"];
+  D.changes.slice().sort((a, b) => ord.indexOf(a.kind) - ord.indexOf(b.kind)).forEach((c) => {
+    const d = el("div", "chg"); d.appendChild(el("span", "t", (icon[c.kind] || "") + " " + c.kind));
+    const b = el("div"); b.appendChild(el("div", "", c.tag)); b.appendChild(el("div", "muted", c.prev + " → " + c.cur + (c.note ? " · " + c.note : ""))); d.appendChild(b); host.appendChild(d);
+  });
+
+  const stageCell = (o) => { const f = document.createDocumentFragment(); const dot = el("span", "dot"); dot.style.background = "var(" + STAGE_VAR[o.stage] + ")"; f.appendChild(dot); f.appendChild(document.createTextNode(o.stage)); return f; };
+  const t = table([
+    { h: "관계사", f: (o) => o.co }, { h: "고객사", f: (o) => o.cust }, { h: "제품", f: (o) => o.prod }, { h: "수주금액(억)", num: 1, f: (o) => n0(o.amt) },
+    { h: "진행단계", f: (o) => o.stage }, { h: "납기일", f: (o) => o.due || "미확인" },
+    { h: "남은 일수", num: 1, f: (o) => { const d = dday(o.due); return d == null ? "-" : (d < 0 ? "D+" + (-d) : "D-" + d); } },
+    { h: "예상 매출 인식", f: (o) => o.rec || "미확인" },
+    { h: "전주 대비", f: (o) => { const tag = o.co + " " + o.cust + " " + o.prod; const c = D.changes.filter((x) => x.tag === tag).map((x) => x.kind); return D.prev_week ? (c.length ? c.join(", ") : "변동 없음") : "-"; } },
+    { h: "비고", f: (o) => (o.notes || []).join(", ") },
+  ], D.orders);
+  t.querySelectorAll("tbody tr").forEach((tr, i) => {
+    const o = D.orders[i]; tr.children[4].replaceChildren(stageCell(o));
+    if (isHot(o.co)) { tr.className = "hot"; const c0 = tr.children[0]; const txt = c0.textContent; c0.replaceChildren(el("span", "star", "✦"), document.createTextNode(txt)); }
+  });
+  $("orders-table").replaceChildren(t);
+}
+
+function renderLog() {
+  const host = $("log-table"); host.replaceChildren();
+  if (!D.log.length) host.appendChild(el("div", "muted", "정제·미확인 대상 없음"));
+  else host.appendChild(table([{ h: "구분", f: (x) => x.kind }, { h: "대상", f: (x) => x.where }, { h: "내용", f: (x) => x.text }, { h: "조치", f: (x) => x.action }], D.log));
+  $("foot").textContent = "이 화면은 make_report.py 계산 결과를 그대로 보여 줍니다. 합계·증감률·점수는 프로그램이 원본 수치로 계산했고 화면에서 다시 계산하지 않습니다. 애니메이션은 표시 효과일 뿐 수치에 영향을 주지 않으며, 시스템의 '동작 줄이기' 설정을 켜면 꺼집니다. 단위 어긋남 기준·납기 지연 기준 일수는 그룹장 결정 필요 상태입니다. 초안이며 영업그룹장 승인 전에는 외부에 전달하지 마세요.";
+}
+
+/* ---------- theme / motion triggers ---------- */
+$("themebtn").addEventListener("click", () => {
+  const root = document.documentElement; const cur = root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  root.dataset.theme = cur === "dark" ? "light" : "dark";
+});
+function observe() {
+  const charts = document.querySelectorAll(".chart"), revs = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window) || REDUCE) { charts.forEach((c) => c.classList.add("play")); revs.forEach((r) => r.classList.add("in")); return; }
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add(e.target.classList.contains("chart") ? "play" : "in"); io.unobserve(e.target); } }), { threshold: 0.12 });
+  charts.forEach((c) => io.observe(c)); revs.forEach((r) => io.observe(r));
+}
+$("replaybtn").addEventListener("click", () => {
+  document.querySelectorAll(".chart.play").forEach((c) => c.classList.remove("play"));
+  void document.body.offsetHeight; // 리플로우 후 다시 재생
+  setTimeout(() => { document.querySelectorAll(".chart").forEach((c) => { const r = c.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) c.classList.add("play"); }); runCounters(); observe(); }, 60);
+});
+
+renderTop(); renderCand(); renderTrend(); renderPipe(); renderLog();
+observe(); runCounters();
+</script>
+</body>
+</html>
