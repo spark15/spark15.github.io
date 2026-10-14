@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>현장 시스템 길잡이 (초안)</title>
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#111827;--muted:#4b5563;--line:#d9dee5;
+  --brand:#1d4e89;--brand-soft:#e8eff8;
+  --ok:#1b7a43;--ok-soft:#e4f4ea;--warn:#9a5a00;--warn-soft:#fdf1df;
+  --no:#8a3b3b;--no-soft:#f8e8e8;--lock:#5b3c88;--lock-soft:#f1ecf9;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+header.top{background:var(--brand);color:#fff;padding:0 24px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+header.top .logo{font-weight:700;font-size:17px;padding:13px 0;cursor:pointer}
+header.top .logo small{font-weight:400;opacity:.75;margin-left:6px;font-size:12px}
+nav{display:flex;flex-wrap:wrap}
+nav a{color:#d6e2f1;text-decoration:none;padding:15px 10px 12px;font-size:14px;border-bottom:3px solid transparent}
+nav a.active,nav a:hover{color:#fff;border-bottom-color:#fff}
+main{max-width:1120px;margin:0 auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:16px}
+h1{font-size:24px;margin:0 0 6px}
+h2{font-size:19px;margin:0 0 12px}
+h3{font-size:16px;margin:18px 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#f0f3f7;font-weight:600;white-space:nowrap}
+.badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;font-weight:600;vertical-align:middle;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-warn{background:var(--warn-soft);color:var(--warn)}
+.b-no{background:var(--no-soft);color:var(--no)}
+.b-lock{background:var(--lock-soft);color:var(--lock)}
+.b-brand{background:var(--brand-soft);color:var(--brand)}
+.b-gray{background:#eef0f3;color:#4b5563}
+.src{display:inline-block;font-size:11.5px;color:#6b7280;border:1px solid #e3e7ec;border-radius:4px;padding:0 6px;margin-left:6px;font-weight:400;vertical-align:middle;line-height:1.6;white-space:nowrap}
+.locked{border-left:4px solid var(--lock);background:var(--lock-soft);padding:12px 16px;border-radius:6px;margin:10px 0}
+.locked .lock-h{font-size:12px;color:var(--lock);font-weight:700;margin-bottom:4px}
+.locked ul{margin:6px 0 0;padding-left:20px}
+.ai-note{font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:6px 10px;display:inline-block}
+.btn{display:inline-block;font:inherit;font-size:14px;border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:6px;padding:7px 14px;cursor:pointer;text-decoration:none;line-height:1.4}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:#fff;color:var(--brand)}
+.btn.ghost:hover{background:var(--brand-soft)}
+.btn.sm{font-size:12.5px;padding:3px 9px;white-space:nowrap}
+.btn.danger{background:#fff;color:var(--no);border-color:#d9b3b3}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+textarea,input[type=text],input[type=date],select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:6px;padding:7px 10px;width:100%;background:#fff}
+textarea{resize:vertical}
+label.fld{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.syscard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.syscard .t{font-weight:700;font-size:16px}
+.result{border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0;background:#fff}
+.result.r-ok{border-left:5px solid var(--ok)}
+.result.r-warn{border-left:5px solid var(--warn)}
+.result.r-no{border-left:5px solid var(--no)}
+.hit{margin:6px 0;padding:8px 10px;background:#f7f9fb;border-radius:6px;font-size:14px}
+.hit mark{background:#fff3b0;padding:0 2px;border-radius:2px}
+ul.check{list-style:none;padding-left:0;margin:4px 0}
+ul.check li{padding-left:22px;position:relative;margin:3px 0}
+ul.check li:before{content:"";position:absolute;left:2px;top:6px;width:11px;height:11px;border:1.5px solid #9aa5b1;border-radius:3px}
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.role{border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:#fbfcfd}
+.role h4{margin:0 0 4px;font-size:14.5px}
+details.faq{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 0;background:#fff}
+details.faq summary{cursor:pointer;font-weight:600}
+pre.flow{background:#f7f9fb;border:1px solid var(--line);border-radius:6px;padding:12px;overflow:auto;font-size:13px;font-family:Consolas,"D2Coding",monospace}
+.timeline{list-style:none;padding:0;margin:8px 0;border-left:3px solid var(--brand-soft)}
+.timeline li{padding:4px 0 4px 16px;position:relative}
+.timeline li:before{content:"";position:absolute;left:-7px;top:11px;width:11px;height:11px;border-radius:50%;background:var(--brand)}
+.timeline b{display:inline-block;min-width:60px;color:var(--brand)}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.toc a{font-size:13px;color:var(--brand);background:var(--brand-soft);padding:3px 10px;border-radius:999px;text-decoration:none;cursor:pointer}
+.hero{background:linear-gradient(135deg,#1d4e89,#2f6db3);color:#fff;border:none}
+.hero h1{color:#fff}
+.hero .muted{color:#d6e2f1}
+.hero textarea{border:none;font-size:15px;margin-top:12px}
+.hero .chip{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+.hero .chip:hover{background:rgba(255,255,255,.25)}
+.hero .btn{background:#fff;color:var(--brand);border-color:#fff;font-weight:700}
+.rnr-table td{padding:4px 6px}
+.rnr-table input[type=text]{padding:4px 6px;font-size:13px}
+.rnr-table tr.grp td{background:var(--brand-soft);font-weight:700}
+.rnr-table tr.deleted td{color:#9aa5b1;text-decoration:line-through}
+.rnr-table tr.deleted td.keep{text-decoration:none}
+.rnr-table .reason{color:var(--no);font-size:12px;text-decoration:none;display:block}
+.rnr-table td.c{text-align:center}
+.sysselect{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:6px}
+.sysselect label{font-size:14px;cursor:pointer}
+.sign{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.sign .box{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.sign .box .stamp{height:56px;border:1px dashed #c3cad3;border-radius:6px;margin-top:8px;display:flex;align-items:center;justify-content:center;color:#b0b8c2;font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.doc{border:1px solid #c9d1db;padding:28px 32px;background:#fff}
+.doc h1{text-align:center;font-size:22px;margin-bottom:18px}
+.doc th{width:22%;white-space:normal}
+.toast{position:fixed;bottom:20px;right:20px;background:#1f2933;color:#fff;padding:9px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:.95}
+/* 시스템 소개 — 카드 기반 */
+.sysec{margin:26px 0 8px}
+.sec-h{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:0 0 12px;scroll-margin-top:72px}
+.sec-h h2{margin:0;font-size:19px;padding-left:10px;border-left:4px solid var(--brand);line-height:1.2}
+.sysec h3{font-size:15px;margin:20px 0 10px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.cgrid.wide{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.cgrid.g4{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.c{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04);display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s;color:inherit;text-decoration:none}
+.c:hover{border-color:#b7c6d9;box-shadow:0 4px 14px rgba(16,24,40,.07)}
+.c-t{font-weight:700;font-size:15px;line-height:1.4;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.c-d{font-size:13.5px;color:#3b4652}
+.c-f{margin-top:auto;padding-top:4px}
+.c.accent{border-top:4px solid var(--brand)}
+.c.mini{padding:11px 14px}
+.c.feat{border-left:4px solid var(--brand-soft)}
+.c.feat:hover{border-left-color:var(--brand)}
+.c.note{background:var(--warn-soft);border-color:#f0d8b0;margin-top:12px}
+.c.stat{background:#f8fafc;box-shadow:none}
+.stat-l{font-size:12px;color:var(--muted);font-weight:600}
+.stat-v{font-size:15px;font-weight:700}
+.c.link .go{margin-left:auto;color:var(--brand);font-size:18px}
+.c.locked-c{border-color:#d5c8ec;background:#fcfaff}
+.locked .c{box-shadow:none}
+.num{display:inline-flex;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;align-items:center;justify-content:center}
+.when{display:inline-block;font-size:12.5px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:6px;padding:2px 9px}
+.q{display:inline-flex;font-size:12px;font-weight:700;color:#fff;background:var(--lock);border-radius:6px;padding:1px 7px}
+.chip-s{display:inline-block;font-size:12px;background:#eef1f5;color:#3b4652;border-radius:5px;padding:2px 8px;margin:2px 4px 2px 0}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px}
+.chain span{font-size:12.5px;font-weight:600;background:var(--lock-soft);color:var(--lock);border-radius:5px;padding:2px 8px}
+.chain i{font-style:normal;color:#9aa5b1}
+/* ── 시스템 소개 v2: 한눈에 보기 + 고정 목차 + 내 역할 보기 ── */
+.sys-page{--sc:#1d4e89;--sbg:#e8eff8}
+.btn.sc{background:var(--sc);border-color:var(--sc)}
+.sys-hero{background:#fff;border:1px solid var(--line);border-top:6px solid var(--sc);border-radius:14px;padding:20px 24px 18px;margin-bottom:14px}
+.crumb{font-size:13px;color:var(--muted)}
+.crumb a{color:var(--muted)}
+.sys-title{display:flex;gap:16px;align-items:flex-start;margin:10px 0 16px}
+.sys-ico{flex:none;width:58px;height:58px;border-radius:14px;background:var(--sbg);color:var(--sc);display:flex;align-items:center;justify-content:center}
+.sys-kicker{font-size:13px;font-weight:700;color:var(--sc);letter-spacing:.02em}
+.sys-title h1{font-size:28px;margin:0;line-height:1.3}
+.sys-one{font-size:16.5px;color:#374151;margin-top:2px}
+.sys-users{font-size:14px;color:var(--muted);margin-top:4px}
+.bento{display:grid;grid-template-columns:2fr 1.3fr 1fr;grid-template-rows:auto auto;gap:12px}
+.tile{background:#f8fafc;border:1px solid #e6eaf0;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.tile .src{margin:auto 0 0;align-self:flex-start}
+.tile-l{font-size:12.5px;font-weight:700;color:var(--muted)}
+.tile-v{font-size:19px;font-weight:700;color:var(--ink);line-height:1.35}
+.tile-v.big{font-size:16px;font-weight:500;line-height:1.7}
+.tile-s{font-size:13.5px;color:#374151}
+.t-purpose{grid-row:span 2;background:var(--sbg);border-color:transparent}
+.t-feat{grid-row:span 2}
+.mini-list{margin:4px 0 6px;padding-left:18px;font-size:15px;font-weight:600}
+.mini-list li{margin:3px 0}
+.more{font-size:13.5px;color:var(--sc);font-weight:600;text-decoration:none;margin-top:auto}
+.role-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:16px}
+.rb-l{font-size:13.5px;font-weight:700;margin-right:4px}
+.rb-hint{font-size:12.5px;color:var(--muted);margin-left:4px}
+.rchip{font:inherit;font-size:13.5px;border:1px solid var(--line);background:#fff;color:#374151;border-radius:999px;padding:4px 12px;cursor:pointer}
+.rchip:hover{border-color:var(--sc);color:var(--sc)}
+.rchip.on{background:var(--sc);border-color:var(--sc);color:#fff;font-weight:600}
+.rchip.sm{font-size:12.5px;padding:2px 10px}
+.sys-body{display:grid;grid-template-columns:190px minmax(0,1fr);gap:22px;align-items:start}
+.side-toc{position:sticky;top:calc(var(--hd,56px) + 14px);display:flex;flex-direction:column;border-left:2px solid var(--line)}
+.st-h{font-size:12px;font-weight:700;color:var(--muted);padding:0 0 6px 12px}
+.side-toc a{font-size:14px;color:#4b5563;text-decoration:none;padding:5px 0 5px 12px;margin-left:-2px;border-left:2px solid transparent}
+.side-toc a:hover{color:var(--ink)}
+.side-toc a.on{color:var(--sc);border-left-color:var(--sc);font-weight:700}
+.sys-main .sysec:first-child{margin-top:0}
+.sys-page .sec-h h2{border-left-color:var(--sc)}
+.feat-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.feat{background:#fff;border:1px solid var(--line);border-left:4px solid var(--sc);border-radius:10px;padding:12px 14px}
+.feat-t{font-weight:700;font-size:15.5px;margin-bottom:2px}
+.c.lv2{background:#fafbfc;box-shadow:none}
+.my-role{background:var(--sbg);border:2px solid var(--sc);border-radius:14px;padding:16px 20px}
+.mr-h{font-size:17px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.my-role .badge{background:var(--sc);color:#fff}
+ul.check.big li{font-size:16px;margin:7px 0;padding-left:26px}
+ul.check.big li:before{width:14px;height:14px;top:5px;border-color:var(--sc)}
+.other-roles{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.print-only{display:none}
+.stages{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.stages li{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.stages .num{background:var(--sc);flex:none}
+.stg-t{font-weight:700}
+.appr{display:flex;flex-direction:column;gap:8px}
+.appr-r{display:grid;grid-template-columns:64px 1fr;gap:12px;background:#fff;border:1px solid #e3dcf1;border-radius:10px;padding:10px 14px}
+.appr-k{font-weight:700;color:var(--lock)}
+.tl{list-style:none;padding:0;margin:0;position:relative}
+.tl li{display:grid;grid-template-columns:150px 22px 1fr;gap:0 10px;position:relative;padding-bottom:14px}
+.tl li:before{content:"";position:absolute;left:160px;top:16px;bottom:-4px;width:2px;background:var(--line)}
+.tl li:last-child:before{display:none}
+.tl-when{font-size:13.5px;font-weight:700;color:var(--sc);text-align:right;padding-top:2px}
+.tl-dot{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--sc);margin:4px 0 0 4px;position:relative;z-index:1}
+.tl-task{font-weight:600;font-size:15.5px;margin-bottom:3px}
+.tl li.hit .tl-body{background:var(--sbg);border-radius:8px;padding:6px 10px;margin:-6px 0 0 -10px}
+.tl li.hit .tl-dot{background:var(--sc)}
+.tl li.dim,.flow-list li.dim{opacity:.45}
+.chip-s.on{background:var(--sc);color:#fff;font-weight:600}
+.mine-b{background:var(--sc);color:#fff;margin-left:8px}
+.note-box{background:var(--warn-soft);border:1px solid #f0d8b0;border-radius:10px;padding:10px 14px;font-size:14.5px;margin-top:4px}
+.rowlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.rl{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid #eef1f4;flex-wrap:wrap}
+.rl:first-child{border-top:none}
+.rl-m{font-weight:600}
+.rl-s{margin-left:auto;font-size:13.5px;color:var(--muted)}
+.flow-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.flow-list li{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:15px}
+.flow-list .num{background:var(--sc);flex:none}
+.flow-list li.hit{border-color:var(--sc);background:var(--sbg)}
+.faq-search{margin-bottom:10px}
+details.faq{border-radius:10px;padding:10px 14px;margin:0 0 8px}
+details.faq summary{display:flex;gap:8px;align-items:center;font-size:15.5px;list-style:none}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary:after{content:"＋";margin-left:auto;color:var(--muted)}
+details.faq[open] summary:after{content:"－"}
+details.faq p{margin:8px 0 2px 34px;color:#374151}
+details.faq.lockf{border-color:#d5c8ec;background:#fcfaff}
+.sys-page .q{background:var(--sc);flex:none}
+.mini-ico{display:inline-flex;width:28px;height:28px;border-radius:8px;background:var(--sbg);color:var(--sc);align-items:center;justify-content:center}
+.c.link .c-t{flex-wrap:nowrap}
+/* 시스템 카드·추천 카드 아이콘 */
+.syscard{border-top:4px solid var(--sc,#1d4e89)}
+.syscard .t{display:flex;align-items:center;gap:10px}
+.result .r-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lead{font-size:17px;font-weight:600;margin:12px 0 4px}
+.lead b{color:var(--brand)}
+@media (max-width:900px){
+  .sys-body{grid-template-columns:1fr}
+  .side-toc{position:static;flex-direction:row;flex-wrap:wrap;border-left:none;gap:6px}
+  .side-toc .st-h{display:none}
+  .side-toc a{border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin:0;background:#fff;font-size:13px}
+  .side-toc a.on{border-color:var(--sc)}
+  .bento{grid-template-columns:1fr}
+  .t-purpose,.t-feat{grid-row:auto}
+  .tl li{grid-template-columns:22px 1fr}
+  .tl li:before{left:10px}
+  .tl-when{grid-column:2;text-align:left}
+  .tl-dot{grid-row:1 / span 2;grid-column:1}
+  .tl-body{grid-column:2}
+  header.top{flex-wrap:nowrap;padding:0 12px;gap:10px}
+  header.top .logo{font-size:15px;white-space:nowrap}
+  header.top .logo small{display:none}
+  nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  nav a{white-space:nowrap;padding:14px 8px 11px;font-size:13.5px}
+}
+/* 화면 내 대화상자 (prompt/confirm/alert 대체) */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:#fff;border-radius:12px;max-width:560px;width:100%;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 8px;font-size:17px}
+.modal .err{color:var(--no);font-size:13px;min-height:18px;margin-top:4px}
+footer{max-width:1120px;margin:0 auto;padding:0 24px 30px;font-size:12px;color:var(--muted)}
+@media (max-width:720px){.two,.three,.sign{grid-template-columns:1fr}main{padding:14px}}
+@media print{
+  header.top,.noprint,footer,.toast{display:none!important}
+  body{background:#fff;font-size:12.5px}
+  main{padding:0;max-width:none}
+  .card{border:none;padding:0;margin-bottom:10px}
+  input[type=text],input[type=date],textarea,select{border:none;padding:0;background:transparent}
+  .rnr-table input[type=text]{font-size:12px}
+  .doc{border:none;padding:0}
+  tr,.role,.box,.c{page-break-inside:avoid;break-inside:avoid}
+  .c{box-shadow:none}
+  .sysec{margin:14px 0 4px}
+  .sys-body{display:block}
+  .print-only{display:block;margin-top:10px}
+  .tl li.dim,.flow-list li.dim{opacity:1}
+  details.faq{display:block!important}
+  details.faq p{display:block}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo" onclick="location.hash='#/home'">현장 시스템 길잡이<small>사업부 시스템운영팀 · 초안</small></div>
+  <nav id="nav">
+    <a href="#/home" data-p="home">업무로 찾기</a>
+    <a href="#/systems" data-p="systems">시스템 목록</a>
+    <a href="#/roadmap" data-p="roadmap">통합 셋업 로드맵</a>
+    <a href="#/rnr" data-p="rnr">우리 현장 R&amp;R</a>
+    <a href="#/request" data-p="request">구축 요청 계획서</a>
+  </nav>
+</header>
+<main id="app"></main>
+<footer>
+  기준 문서: 더미자료/00~05 md 6종 (모든 회사명·인명·연락처·수치는 가상) · 기준 문서에 없는 수치는 '미확인'으로 표시 · 이 파일은 외부로 데이터를 전송하지 않습니다 · 입력값은 이 브라우저(localStorage)에만 저장됩니다
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   1단계 취합 [규칙] — 기준 문서(더미자료/*.md) 원문을 구조화한 데이터
+   md가 바뀌면 이 데이터를 다시 생성해야 합니다. 문구는 원문 그대로입니다.
+   ===================================================================== */
+const F0 = "00_전체개요_및_통합셋업로드맵.md";
+
+const OVERVIEW = {
+  org: "가상 조직: 한울건설 건축사업부 / 시스템 운영 총괄: 사업부 시스템운영팀",
+  relations: [
+    { a: "work", b: "attendance", text: "작업현황 등록 → 출역현황 조회: 계획된 작업 인원과 실제 출역 인원을 비교하는 기준 데이터로 활용" },
+    { a: "work", b: "vehicle", text: "작업현황 등록 → 차량 출입관리: 작업 계획상 자재 반입 필요일에 맞춰 차량 예약" },
+    { a: "steel", b: "vehicle", text: "철골 자재관리 → 차량 출입관리: 철골 입고 예정일이 차량 출입 예약으로 연결 (대형 트레일러 별도 승인)" },
+    { a: "docs", b: "work", text: "현장문서관리 → 작업현황 등록: 고위험 작업(화기, 고소, 중장비 등)은 허가서 승인 후에만 작업 등록 가능 (옵션)" }
+  ],
+  commonBase: "공통 기준정보: 현장 코드, 협력업체 마스터, 공종 코드, 사용자/권한 → 최초 1회 등록 후 5개 시스템이 공유",
+  commonRoles: [
+    ["사업부 시스템운영팀 (총괄 관리자)", "본사", "현장 코드 발급, 계정/권한 승인, 교육, 장애 대응, 표준 양식 관리"],
+    ["현장소장", "현장", "시스템 적용 최종 승인, 현장 담당자 지정"],
+    ["현장 시스템 담당자 (공무팀)", "현장", "현장 기준정보 입력, 협력업체 온보딩, 일상 운영 관리 (현장 PM 역할)"],
+    ["공종/분야 담당자", "현장", "시스템별 실무 승인 및 점검 (안전, 품질, 자재, 철골 등)"],
+    ["협력업체 현장대리인", "협력업체", "자사 근로자·차량·작업 정보 입력"],
+    ["자재 제작사/공급사", "외부", "철골 제작 실적 입력 등"],
+    ["IT 인프라 담당", "본사 IT", "네트워크, 게이트 장비, 단말 연동"],
+    ["정문 경비/게이트 운영자", "현장", "차량·인원 출입 확인"]
+  ],
+  roadmap: [
+    ["D-20", "적용 신청 (현장소장 → 시스템운영팀)"],
+    ["D-18", "킥오프 미팅 / 적용 시스템 범위 확정"],
+    ["D-17", "현장 기준정보 등록 (현장코드, 공종, 협력업체)"],
+    ["D-15", "사용자 계정 신청 및 권한 부여"],
+    ["D-14", "[출역] 게이트 장비 발주/설치 시작 (IT)"],
+    ["D-10", "협력업체 온보딩 교육 (공통)"],
+    ["D-7", "시스템별 세부 셋업 (작업현황/철골/차량/문서)"],
+    ["D-5", "[출역] 게이트 연동 테스트"],
+    ["D-3", "통합 리허설 (모의 데이터로 1일 운영)"],
+    ["D-1", "최종 점검 체크리스트 서명"],
+    ["D-Day", "정식 오픈 (운영 시작)"],
+    ["D+7", "초기 안정화 점검 (이슈 수렴)"],
+    ["D+30", "정착 평가 및 개선 요청 수렴"]
+  ],
+  phases: [
+    ["1. 적용 신청", "현장소장", "시스템 적용 신청서 (양식 SYS-001)", "착공 20영업일 전 권장"],
+    ["2. 킥오프", "시스템운영팀 + 현장 시스템 담당자", "적용 범위 확정서, 일정표", "필수 시스템 vs 선택 시스템 구분"],
+    ["3. 현장 코드 발급", "시스템운영팀", "현장 코드(예: HW-2026-014)", "코드 형식: HW-연도-일련번호"],
+    ["4. 기준정보 등록", "현장 시스템 담당자", "공종 리스트, 협력업체 마스터", "사업자등록번호 기준 중복 체크"],
+    ["5. 계정/권한", "시스템운영팀", "계정 발급 대장", "권한 신청서 + 보안서약서 필요"],
+    ["6. 교육", "시스템운영팀", "교육 이수 명단", "현장 담당자 2h, 협력업체 1h"],
+    ["7. 시스템별 셋업", "각 시스템 담당", "시스템별 체크리스트", "개별 문서 참조"],
+    ["8. 리허설", "현장 시스템 담당자", "리허설 결과 보고", "이슈 0건 목표"],
+    ["9. 오픈", "현장소장", "오픈 승인서", ""]
+  ],
+  mandatory: [
+    ["작업현황 등록", "필수", "모든 현장"],
+    ["출역현황 조회", "필수", "모든 현장 (소규모 현장은 게이트 대신 태블릿 체크 허용)"],
+    ["현장문서관리", "필수", "모든 현장"],
+    ["차량 출입관리", "조건부 필수", "일 평균 반입 차량 10대 이상 또는 도심지 현장"],
+    ["철골 자재관리", "조건부 필수", "철골(S조/SRC조) 공사가 포함된 현장"]
+  ],
+  contacts: [
+    ["시스템 적용 문의", "시스템운영팀 박OO 책임", "02-000-1001 / sysops@hanul-demo.co.kr", "평일 08:30~17:30"],
+    ["계정/권한", "시스템운영팀 김OO 대리", "02-000-1002", "평일 08:30~17:30"],
+    ["게이트/장비", "본사 IT 이OO 과장", "02-000-1003", "평일 08:30~17:30"],
+    ["긴급 장애", "헬프데스크", "1588-0000", "24시간"]
+  ]
+};
+
+const SYSTEMS = [
+/* ---------------------------------------------------------- ① 작업현황 등록 */
+{
+  id: "work", no: 1, name: "작업현황 등록", file: "01_작업현황등록.md", category: "필수",
+  oneLine: "일 단위 작업 계획을 사전 입력",
+  overview: { users: "공종 담당자, 협력업체 현장대리인", difficulty: "★★☆☆☆", period: "3영업일" },
+  purpose: "현장에서 일 단위로 어떤 작업을 누가, 어디서, 몇 명이 할지를 전날(또는 당일 오전)까지 미리 입력하여 현장 전체의 작업 간섭을 사전에 파악하고, 안전·자재·장비 지원 계획을 세우기 위한 시스템입니다.",
+  effects: { sec: "§1.2", items: [
+    "협력업체 간 동일 구역 작업 중복/간섭 사전 파악",
+    "안전관리자의 위험 작업 사전 파악 및 순찰 계획 수립",
+    "일일 작업 현황 보고(작업일보) 자동 생성",
+    "출역현황(시스템 ②)과 비교하여 계획 대비 실적 분석"
+  ]},
+  extras: [],
+  featuresSec: "§1.3",
+  features: [
+    ["일일 작업 등록", "날짜, 업체, 공종, 작업 위치(동/층/구역), 작업 내용, 예정 인원, 사용 장비 입력"],
+    ["위험 작업 표시", "고소/화기/밀폐/중장비/양중 등 위험 유형 체크 → 안전담당자 자동 알림"],
+    ["주간 계획 일괄 등록", "엑셀 업로드로 1주일치 일괄 등록"],
+    ["작업 간섭 알림", "동일 층/구역에 타 업체 작업이 있으면 경고 표시"],
+    ["변경/취소 이력", "작업 변경 시 사유 입력, 이력 보관"],
+    ["작업일보 출력", "일자별 작업 현황 PDF/엑셀 출력"],
+    ["승인 흐름", "업체 입력 → 공종 담당자 확인 → 안전 담당자 확인(위험작업 시)"]
+  ],
+  rules: { sec: "§1.4", title: "입력 마감 규칙 (기본값, 현장별 조정 가능)", items: [
+    "당일 작업: 전일 16:00까지 등록",
+    "마감 후 추가/변경: 사유 입력 필수, 공종 담당자 승인 필요",
+    "위험 작업: 전일 14:00까지 등록 (안전 검토 시간 확보)"
+  ]},
+  roles: [
+    { role: "사업부 시스템운영팀", items: [
+      "현장 코드 발급 및 시스템 현장 등록",
+      "표준 공종 코드표 제공 (건축/구조/기계/전기/토목 등 대/중분류)",
+      "위험 작업 유형 코드 설정",
+      "현장 시스템 담당자 교육 (2시간)"]},
+    { role: "현장소장", items: [
+      "시스템 적용 신청서 승인",
+      "입력 마감 시간 및 승인 규칙 결정",
+      "현장 시스템 담당자 지정"]},
+    { role: "현장 시스템 담당자 (공무팀)", items: [
+      "현장 위치 코드 체계 작성 (동 → 층 → 구역). 예: A동-3F-1구역",
+      "협력업체 마스터 등록 (업체명, 사업자번호, 공종, 대표 담당자)",
+      "공종별 담당자(승인자) 매핑표 작성",
+      "안전 담당자 알림 수신자 설정",
+      "협력업체 계정 신청 취합 및 전달",
+      "협력업체 교육 일정 수립",
+      "테스트용 작업 5건 이상 등록 후 리허설"]},
+    { role: "공종 담당자 (현장 직원)", items: [
+      "담당 업체 및 담당 공종 확인",
+      "승인 알림 수신 설정 (모바일 앱)",
+      "작업 간섭 판단 기준 숙지"]},
+    { role: "안전 담당자", items: [
+      "위험 작업 유형별 검토 기준 확정",
+      "위험 작업 승인 시 확인 항목(허가서 유무, 보호구, 감시자 배치) 정의",
+      "알림 수신 채널 확정 (앱 푸시/문자)"]},
+    { role: "협력업체 현장대리인", items: [
+      "계정 신청 (이름, 휴대폰, 이메일, 소속 업체)",
+      "1시간 온라인 교육 이수",
+      "입력 담당자 지정 (현장대리인 본인 + 보조 1인까지 가능)",
+      "자사 투입 장비 목록 사전 준비"]}
+  ],
+  setup: { title: "셋업 절차 (표준 3영업일)", headers: ["일차", "작업", "담당", "산출물"], rows: [
+    ["1일차 오전", "현장 코드 및 현장 등록", "시스템운영팀", "현장 코드"],
+    ["1일차 오후", "위치 코드 체계·공종 담당자 매핑표 작성", "현장 시스템 담당자", "엑셀 양식 SYS-101"],
+    ["2일차 오전", "기준정보 업로드, 협력업체 등록", "현장 시스템 담당자", "등록 완료 화면"],
+    ["2일차 오후", "계정 발급 및 권한 부여", "시스템운영팀", "계정 발급 대장"],
+    ["3일차 오전", "협력업체 교육", "시스템운영팀/현장", "이수 명단"],
+    ["3일차 오후", "테스트 등록·승인 리허설", "전원", "리허설 결과"]
+  ], note: "" },
+  forms: [
+    ["SYS-001", "시스템 적용 신청서", "현장소장"],
+    ["SYS-101", "위치 코드/공종 담당자 매핑표", "현장 시스템 담당자"],
+    ["SYS-102", "협력업체 계정 신청서", "협력업체"]
+  ],
+  flow: [
+    "(D-1 16:00까지) 협력업체가 익일 작업 등록",
+    "(D-1 16:00~17:00) 공종 담당자 확인/승인, 간섭 조정",
+    "(D-1 17:00) 안전 담당자 위험 작업 검토",
+    "(D-Day 07:00) 작업 확정 현황이 TBM(작업 전 회의)용으로 출력",
+    "(D-Day 이후) 변경 사항 수시 반영"
+  ],
+  faq: [
+    ["신규 현장에서 작업현황 등록을 쓰려면 제일 먼저 뭘 해야 하나요?", "현장소장 명의의 시스템 적용 신청서(SYS-001)를 시스템운영팀에 제출하세요. 현장 코드가 발급되어야 이후 단계가 진행됩니다."],
+    ["협력업체는 누가 등록하나요?", "현장 시스템 담당자(공무팀)가 협력업체 마스터를 등록합니다. 협력업체는 계정 신청서만 제출하면 됩니다."],
+    ["마감 시간이 지났는데 작업을 추가해야 해요.", "사유를 입력하고 신청하면 공종 담당자가 승인하는 절차로 등록할 수 있습니다. 위험 작업은 안전 담당자 확인이 추가됩니다."],
+    ["엑셀로 한 번에 올릴 수 있나요?", "네, 주간 계획 엑셀 양식(SYS-103)을 내려받아 작성 후 업로드하면 됩니다."],
+    ["위치 코드는 어떻게 만드나요?", "동 → 층 → 구역 3단계가 기본이며, 도면의 그리드(예: X1~X5)를 구역으로 사용하는 현장도 많습니다."]
+  ],
+  contacts: ["시스템운영팀 박OO 책임 (02-000-1001)"],
+  concepts: [
+    { feature: "일일 작업 등록", terms: ["작업계획", "작업 일정", "내일 작업", "익일 작업", "일일 작업", "일단위 작업", "하루 작업", "오늘 작업", "작업 등록", "작업 입력", "작업내용", "어떤 작업", "무슨 작업", "작업 현황", "작업 예정", "투입 인원", "예정 인원"] },
+    { feature: "위험 작업 표시", terms: ["위험작업", "위험 유형", "고소작업", "양중작업", "안전 순찰", "순찰 계획"] },
+    { feature: "작업 간섭 알림", terms: ["작업 간섭", "간섭", "중복 작업", "같은 구역", "동일 구역", "동시 작업", "겹치는 작업"] },
+    { feature: "주간 계획 일괄 등록", terms: ["주간 계획", "주간 작업", "일괄 등록", "한번에 등록", "한 번에 등록"] },
+    { feature: "작업일보 출력", terms: ["작업일보", "일보", "작업 보고"] },
+    { feature: "변경/취소 이력", terms: ["작업 변경", "작업 취소"] }
+  ]
+},
+/* ---------------------------------------------------------- ② 출역현황 조회 */
+{
+  id: "attendance", no: 2, name: "출역현황 조회", file: "02_출역현황조회.md", category: "필수",
+  oneLine: "연명부 등록 + 출역게이트 연동으로 업체별 출입/퇴근 시각 조회",
+  overview: { users: "안전/공무 담당, 협력업체", difficulty: "★★★★☆", period: "10~15영업일 (게이트 설치 포함)" },
+  purpose: "건설현장에서 일 단위로 업체별 누가 출역했는지, 몇 시에 들어와 몇 시에 나갔는지를 파악하기 위한 시스템입니다. 사전에 연명부(근로자 명단)를 등록하고, 출역게이트(안면인식/QR/RFID)에서 전송된 출입 기록을 연동하여 결과를 조회합니다.",
+  effects: null,
+  extras: [
+    { type: "pre", sec: "§1.2", title: "구성 요소", text:
+"[협력업체] 연명부 등록 → [현장 승인] → [게이트 장비에 근로자 정보 전송]\n                                              ↓\n[근로자 게이트 통과] → [게이트 로그 수신] → [출역현황 조회/리포트]" }
+  ],
+  featuresSec: "§1.3",
+  features: [
+    ["연명부 등록", "업체별 근로자 정보(성명, 생년월일, 직종, 연락처, 외국인 여부) 등록"],
+    ["필수서류 확인", "안전교육 이수, 건강검진, 보험 가입, 자격증, 외국인 비자 서류 첨부"],
+    ["근로자 승인", "안전 담당자 서류 검토 후 출입 승인"],
+    ["게이트 연동", "승인된 근로자 정보를 게이트 장비로 자동 전송"],
+    ["출역 실시간 조회", "현재 현장 내 인원 수(업체별/공종별) 실시간 확인"],
+    ["일자별 출역 조회", "업체/근로자별 입장·퇴장 시각, 체류시간 확인"],
+    ["이상 출입 알림", "미승인자 시도, 미퇴근(전일 입장 후 퇴장 기록 없음), 중복 출입"],
+    ["월 집계", "업체별 월 공수(인일) 집계, 엑셀 다운로드"],
+    ["작업현황 비교", "계획 인원(시스템①) vs 실제 출역 인원 비교"]
+  ],
+  rules: { sec: "§1.4", title: "출역 인정 기준 (기본값)", items: [
+    "입장 기록 + 퇴장 기록 모두 있어야 정상 출역",
+    "체류시간 4시간 미만 = 0.5공수, 4시간 이상 = 1공수 (현장별 조정)",
+    "미퇴근(퇴장 기록 없음)은 다음날 오전까지 업체 대표자가 사유 소명"
+  ]},
+  roles: [
+    { role: "사업부 시스템운영팀", items: [
+      "현장 코드 등록 및 출역 모듈 활성화",
+      "게이트 로그 수신 서버 연동 설정 (현장별 장비 ID 매핑)",
+      "연명부 양식 및 필수서류 목록 표준 제공",
+      "개인정보 처리 관련 동의서 양식 제공",
+      "현장 담당자 교육 (2시간)"]},
+    { role: "본사 IT 인프라 담당", items: [
+      "게이트 장비 규격 검토 및 발주 (안면인식 / QR / RFID 선택)",
+      "현장 인터넷 회선 확인 (유선 권장, 상시 연결 필요)",
+      "게이트 장비 설치 위치 현장 실사 (정문/후문)",
+      "장비 설치·네트워크 설정, 서버 연동 테스트",
+      "비상 시 수동 출입 확인용 태블릿 준비"]},
+    { role: "현장소장", items: [
+      "게이트 설치 위치 및 출입 동선 승인",
+      "출역 인정 기준(공수 계산) 결정",
+      "개인정보 처리 책임자 지정"]},
+    { role: "현장 시스템 담당자 (공무팀)", items: [
+      "협력업체 마스터 등록",
+      "직종 코드 확인 (철근공, 형틀목공, 전공, 배관공 등)",
+      "게이트 설치 현장 실사 입회",
+      "협력업체별 연명부 제출 일정 관리",
+      "필수서류 항목 확정 (현장 특성 반영)",
+      "리허설: 테스트 근로자 5명 등록 → 게이트 통과 → 조회 확인"]},
+    { role: "안전 담당자", items: [
+      "근로자 서류 검토 기준 확정 (교육 이수 증빙, 혈압 기준 등)",
+      "신규자 안전교육 일정 수립 (게이트 등록 전 필수)",
+      "외국인 근로자 서류 검토 절차 마련",
+      "미승인자 출입 시도 알림 수신 설정"]},
+    { role: "협력업체 현장대리인 / 관리자", items: [
+      "연명부 작성: 투입 예정 근로자 전원 (성명, 생년월일, 직종, 휴대폰)",
+      "필수서류 스캔본 준비 — 기초안전보건교육 이수증 (건설업 필수)",
+      "필수서류 스캔본 준비 — 근로계약서 사본",
+      "필수서류 스캔본 준비 — 4대보험 가입 증명",
+      "필수서류 스캔본 준비 — 특수 직종 자격증 (용접, 비계, 전기 등)",
+      "필수서류 스캔본 준비 — 외국인: 외국인등록증/비자, 한국어 가능 통역자 지정",
+      "개인정보(안면 사진 등) 수집·이용 동의서 근로자 서명 취합",
+      "안면인식용 사진 준비 (정면, 모자·마스크 미착용) — 안면인식 방식 시",
+      "입력 담당자 지정"]},
+    { role: "근로자 본인", items: [
+      "기초안전보건교육 이수",
+      "현장 신규자 교육 이수",
+      "개인정보 동의서 서명",
+      "게이트에서 안면 등록 (최초 1회)"]}
+  ],
+  setup: { title: "셋업 절차 (표준 10~15영업일)", headers: ["단계", "기간", "작업", "담당", "산출물"], rows: [
+    ["1", "D-20", "게이트 방식 협의 (안면/QR/RFID), 현장 실사", "IT + 현장 담당자", "장비 구성안"],
+    ["2", "D-18", "장비 발주 (납기 7~10영업일)", "IT", "발주서"],
+    ["3", "D-15", "협력업체 마스터 등록, 계정 발급", "현장 담당자/운영팀", "계정 대장"],
+    ["4", "D-14", "협력업체 대상 연명부 작성 안내 (교육 1시간)", "운영팀", "안내 자료"],
+    ["5", "D-12~D-6", "협력업체 연명부·서류 제출", "협력업체", "연명부"],
+    ["6", "D-10~D-5", "서류 검토 및 승인", "안전 담당자", "승인 완료"],
+    ["7", "D-8", "게이트 장비 설치·네트워크 설정", "IT", "설치 확인서"],
+    ["8", "D-5", "게이트-서버 연동 테스트", "IT + 운영팀", "테스트 결과서"],
+    ["9", "D-3", "승인 근로자 정보 게이트 전송, 현장 안면 등록", "현장 담당자", "등록 완료율"],
+    ["10", "D-1", "통합 리허설 (오전 출입 → 오후 조회 검증)", "전원", "리허설 결과"]
+  ], note: "소규모 현장(근로자 30명 이하)은 게이트 장비 대신 태블릿 QR 체크인 방식으로 단축 운영 가능 (5영업일)." },
+  forms: [
+    ["SYS-201", "근로자 연명부 (엑셀 업로드용)", "협력업체"],
+    ["SYS-202", "개인정보 수집·이용 동의서", "근로자"],
+    ["SYS-203", "게이트 설치 위치 확인서", "IT/현장"],
+    ["SYS-204", "미퇴근 소명서", "협력업체"]
+  ],
+  flow: [
+    "신규 투입 인원: 협력업체가 연명부에 추가 → 서류 첨부 → 안전 담당자 승인 (통상 당일 처리, 오전 11시까지 신청 시)",
+    "승인 즉시 게이트 장비에 반영 (약 10분)",
+    "근로자 출근: 게이트 통과 → 입장 기록",
+    "퇴근: 게이트 통과 → 퇴장 기록",
+    "익일 09:00: 미퇴근/이상 출입 알림 확인 및 소명",
+    "월말: 업체별 공수 집계 → 협력업체 기성 확인 자료 활용"
+  ],
+  faq: [
+    ["출역현황 조회를 신규 현장에 쓰려면 누가 무엇을 해야 하나요?", "① 본사 IT가 게이트 장비 설치/연동, ② 현장 시스템 담당자가 협력업체 등록, ③ 협력업체가 연명부와 필수서류 제출, ④ 안전 담당자가 서류 승인 순으로 진행합니다. 가장 오래 걸리는 것은 장비 납기와 협력업체 서류 제출이므로 착공 3주 전 시작을 권장합니다."],
+    ["근로자가 게이트에서 인식이 안 돼요.", "연명부 승인 후 게이트 반영까지 약 10분이 걸립니다. 반영 완료 후에도 안 되면 안면 재등록을 하거나 현장 시스템 담당자에게 수동 출입 처리를 요청하세요."],
+    ["외국인 근로자는 어떻게 등록하나요?", "연명부에 외국인 여부를 체크하고 외국인등록증(또는 비자) 사본을 첨부합니다. 안전교육 시 통역자 배치가 필요합니다."],
+    ["출역 인원이 실제와 다릅니다.", "미퇴근 건이 있는지 확인하세요. 퇴장 기록 없는 건은 공수에서 제외되며 소명서 제출 후 수정됩니다."],
+    ["게이트 장비 비용은 누가 부담하나요?", "장비 구입은 현장 가설비로 처리하며, 설치·연동은 본사 IT가 지원합니다. (가상 기준)", true]
+  ],
+  contacts: ["시스템운영팀 박OO 책임 (02-000-1001)", "게이트/장비: 본사 IT 이OO 과장 (02-000-1003)"],
+  concepts: [
+    { feature: "일자별 출역 조회", terms: ["출역", "출근", "퇴근", "출퇴근", "몇시에 들어", "몇시에 나", "들어오고 나간", "입장 시각", "퇴장 시각", "누가 왔", "누가 출", "누가 들어", "근태"] },
+    { feature: "출역 실시간 조회", terms: ["현장 내 인원", "현재 인원", "인원 현황", "몇 명 있", "몇명 있", "인원 파악", "인원 수"] },
+    { feature: "연명부 등록", terms: ["연명부", "근로자 명단", "근로자 등록", "인력 명단", "작업자 명단", "근로자 정보"] },
+    { feature: "게이트 연동", terms: ["게이트", "안면인식", "안면 인식", "출입게이트", "rfid", "체크인", "출입 기록", "인원 출입"] },
+    { feature: "월 집계", terms: ["공수", "인일", "노무비", "출역 집계", "인원 집계"] },
+    { feature: "필수서류 확인", terms: ["안전교육 이수", "건강검진", "4대보험", "외국인 근로자", "비자", "근로계약서"] },
+    { feature: "이상 출입 알림", terms: ["미퇴근", "미승인자", "무단 출입", "중복 출입"] }
+  ]
+},
+/* ---------------------------------------------------------- ③ 철골 자재관리 */
+{
+  id: "steel", no: 3, name: "철골 자재관리", file: "03_철골자재관리.md", category: "조건부 필수",
+  oneLine: "철골 제작 단계별 계획/실적, 현장 입고·설치일자 관리",
+  overview: { users: "철골 담당, 제작사, 운송사", difficulty: "★★★☆☆", period: "5영업일" },
+  purpose: "철골은 공장 제작에 수개월이 소요되는 장납기 자재입니다. 제작의 각 단계별 계획일자/실적일자를 관리하고, 현장 입고일자와 설치일자까지 이어서 추적하여 공정 지연을 조기에 파악합니다.",
+  effects: null,
+  extras: [
+    { type: "table", view: "steps", sec: "§1.2", title: "관리 대상 생산 단계 (표준)", headers: ["순서", "단계", "설명", "입력 주체"], rows: [
+      ["1", "도면 승인", "샵드로잉(제작도) 작성 → 감리/설계 승인", "제작사 / 현장 철골 담당"],
+      ["2", "원자재 발주", "강재(H빔, 후판 등) 주문", "제작사"],
+      ["3", "원자재 입고", "제작 공장에 강재 입고", "제작사"],
+      ["4", "절단/가공", "절단, 홀 가공, 개선 가공", "제작사"],
+      ["5", "조립/용접", "부재 조립 및 용접", "제작사"],
+      ["6", "비파괴검사", "초음파탐상(UT) 등 용접부 검사", "제작사 / 검사기관"],
+      ["7", "도장", "방청도장/내화도장", "제작사"],
+      ["8", "출하 검사", "치수·도장 최종검사, 현장 담당자 입회", "제작사 + 현장 철골 담당"],
+      ["9", "출하(상차)", "공장에서 운송 출발", "제작사 / 운송사"],
+      ["10", "현장 입고", "현장 도착·수량/상태 확인", "현장 철골 담당"],
+      ["11", "설치(건립)", "구조물 설치 완료", "철골 시공사"],
+      ["12", "설치 후 검사", "볼트 체결, 용접부 검사, 수직도", "현장 품질 / 감리"]
+    ]},
+    { type: "list", sec: "§1.4", title: "관리 단위", items: [
+      "절(Section): 제작/설치 단위 묶음 (예: 1절 = 1~3층 기둥·보). 현장에서 설치 순서의 기준",
+      "부재(Member): 개별 철골 부재 (마크 단위)",
+      "진행률은 중량(톤) 가중 기준 계산"
+    ]}
+  ],
+  featuresSec: "§1.3",
+  features: [
+    ["부재 마스터 등록", "부재 마크(예: C1, G2), 규격, 수량, 중량, 설치 위치(동/층/구역)"],
+    ["단계별 계획·실적 관리", "각 단계 계획일 입력, 실적일 입력(제작사 직접), 지연일수 자동 계산"],
+    ["지연 알림", "계획 대비 3일 이상 지연 시 현장 담당자·구매 담당자에 알림"],
+    ["현장 입고 관리", "입고 시 부재 마크/QR 스캔 → 실제 입고 확인, 누락/파손 기록"],
+    ["설치 관리", "설치일, 설치 업체, 설치 위치 기록"],
+    ["진행률 대시보드", "물량(톤) 기준 단계별 진행률, 층별/절별 설치 진행률"],
+    ["공정 연계", "설치 계획일에서 역산한 필요 입고일/출하일 자동 제시"],
+    ["제작사 포털", "제작사가 별도 화면에서 실적만 입력"]
+  ],
+  rules: null,
+  roles: [
+    { role: "사업부 시스템운영팀", items: [
+      "현장 코드에 철골 모듈 활성화",
+      "생산 단계 표준 템플릿 제공 (12단계, 현장별 가감 가능)",
+      "제작사용 외부 접속 계정/포털 URL 발급",
+      "부재 마스터 엑셀 업로드 양식 제공",
+      "현장 철골 담당자 교육 (1.5시간), 제작사 교육 (1시간)"]},
+    { role: "현장 철골 담당자 (공사팀)", items: [
+      "철골 구조도면 기반 부재 리스트 확보 (부재 마크, 규격, 수량, 중량)",
+      "절(Section) 구분안 작성 및 설치 순서 확정",
+      "설치 계획일 확정 (공정표 기준) → 단계별 계획일 역산 협의",
+      "제작사와 단계별 계획일 합의",
+      "입고 검수 기준 마련 (검수 인원, 야적장 위치, QR 라벨 부착 여부)",
+      "출하검사 입회 일정 관리 체계 수립"]},
+    { role: "구매/자재 담당자 (본사 또는 현장)", items: [
+      "제작사 계약 체결 완료 (제작 시작 전)",
+      "계약서상 납기와 시스템 계획일 일치 확인",
+      "제작사 담당자 정보(성명, 연락처, 이메일) 전달",
+      "원자재(강재) 발주 일정 확인"]},
+    { role: "제작사 (철골 제작 업체)", items: [
+      "담당자 계정 신청 (실적 입력 담당 1~2명)",
+      "부재별 생산 일정표 제출 (계획일)",
+      "제작 공장 단계별 진행 현황을 주 2회 이상 시스템에 입력",
+      "출하 전 포장·QR 라벨 부착 (부재 마크 기준)",
+      "출하 시 출하 명세서(수량·중량·차량번호) 시스템 등록"]},
+    { role: "운송사", items: [
+      "출하 차량 정보 사전 공유 (차량번호, 기사 연락처, 도착 예정시간)",
+      "대형 트레일러 현장 진입 가능 여부 확인 (→ 차량 출입관리 연계)"]},
+    { role: "철골 시공(건립) 업체", items: [
+      "설치 계획 및 장비(크레인) 계획 제출",
+      "설치 완료 시 설치일 보고 (현장 담당자 대리 입력 가능)"]},
+    { role: "현장 품질/감리", items: [
+      "출하검사·설치 후 검사 결과 확인",
+      "비파괴검사 성적서 등록 확인"]},
+    { role: "현장소장", items: [
+      "철골 공급 일정 월간 리뷰 주관",
+      "지연 시 대책 승인"]}
+  ],
+  setup: { title: "셋업 절차 (표준 5영업일, 단 부재 리스트 확보 시점 기준)", headers: ["일차", "작업", "담당", "산출물"], rows: [
+    ["사전", "구조도면 기반 부재 리스트 작성 (현장에서 가장 오래 걸림, 1~2주)", "현장 철골 담당", "부재 리스트(엑셀)"],
+    ["1일차", "철골 모듈 활성화, 단계 템플릿 확정", "시스템운영팀", "템플릿 확정서"],
+    ["1일차", "절 구분안 및 설치 순서 등록", "현장 철골 담당", "절 정보"],
+    ["2일차", "부재 마스터 엑셀 업로드 및 검증", "현장 철골 담당", "업로드 결과"],
+    ["2일차", "제작사 계정 발급·교육", "시스템운영팀", "계정 발급 확인"],
+    ["3일차", "단계별 계획일 입력 (제작사와 협의)", "현장 + 제작사", "계획일 확정"],
+    ["4일차", "입고 검수 프로세스 점검 (QR 스캔 테스트)", "현장 철골 담당", "점검 결과"],
+    ["5일차", "시범 운영 (부재 10개 실적 입력 테스트)", "전원", "리허설 결과"]
+  ], note: "" },
+  forms: [
+    ["SYS-301", "철골 부재 마스터 업로드 양식", "현장 철골 담당"],
+    ["SYS-302", "제작사 일정 계획표", "제작사"],
+    ["SYS-303", "출하 명세서", "제작사"],
+    ["SYS-304", "현장 입고 검수표", "현장 철골 담당"],
+    ["SYS-305", "제작사 계정 신청서", "제작사"]
+  ],
+  flow: [
+    "제작사: 공정 진행 → 시스템에 실적일 입력 (주 2회 이상)",
+    "시스템: 계획 대비 지연 자동 계산, 3일 이상 지연 시 알림",
+    "현장 철골 담당: 주 1회 제작 진행률 확인 및 제작사 독려",
+    "출하 3일 전: 출하검사 일정 확정, 현장 입회",
+    "출하 당일: 출하 명세서 등록 → 차량 출입 예약(시스템④) 연동",
+    "현장 입고: QR 스캔으로 입고 확인 → 누락·파손 기록",
+    "설치 완료: 설치일 입력 → 진행률 자동 반영"
+  ],
+  faq: [
+    ["철골 자재관리를 신규 현장에 적용하려면 현장에서 가장 먼저 준비할 것은?", "구조도면을 기준으로 한 부재 리스트입니다. 부재 마크, 규격, 수량, 중량, 설치 위치가 필요합니다. 통상 제작사의 샵드로잉 단계에서 확정되므로 제작사와 협의해 받는 방법도 있습니다."],
+    ["제작사 실적은 누가 입력하나요?", "원칙적으로 제작사가 직접 입력합니다. 제작사 담당자가 계정 신청서(SYS-305)를 제출하면 시스템운영팀이 외부 접속용 계정을 발급합니다."],
+    ["계획일은 누가 정하나요?", "현장 철골 담당자가 설치 계획일을 정하고, 제작사와 협의하여 역산한 계획일을 확정합니다."],
+    ["입고 시 수량이 안 맞아요.", "입고 화면에서 해당 부재를 '수량 불일치/파손'으로 기록하고 사진을 첨부하면 제작사와 구매 담당자에게 자동 알림이 갑니다."],
+    ["설계변경이 있어 부재가 바뀌었어요.", "부재 마스터에서 변경 이력을 남기고 수정할 수 있습니다. 이미 출하된 부재는 변경 대신 '추가 제작'으로 등록합니다."]
+  ],
+  contacts: ["시스템운영팀 박OO 책임 (02-000-1001)", "철골 모듈 담당: 김OO 대리 (02-000-1002)"],
+  concepts: [
+    { feature: "단계별 계획·실적 관리", terms: ["철골", "샵드로잉", "제작도", "제작 진행", "제작 일정", "제작 현황", "생산 단계", "공장 제작", "장납기", "강재", "h빔", "비파괴검사", "출하 검사"] },
+    { feature: "지연 알림", terms: ["제작 지연", "납기 지연", "공정 지연"] },
+    { feature: "부재 마스터 등록", terms: ["부재", "부재 마크", "부재 리스트"] },
+    { feature: "현장 입고 관리", terms: ["입고일", "입고 관리", "입고 확인", "입고 검수", "누락", "파손", "수량 불일치"] },
+    { feature: "설치 관리", terms: ["설치일", "설치 일자", "건립", "설치 진행", "설치 현황"] },
+    { feature: "진행률 대시보드", terms: ["진행률", "물량", "중량"] },
+    { feature: "제작사 포털", terms: ["제작사", "제작 업체", "제작업체"] }
+  ]
+},
+/* ---------------------------------------------------------- ④ 차량 출입관리 */
+{
+  id: "vehicle", no: 4, name: "차량 출입관리", file: "04_차량출입관리.md", category: "조건부 필수",
+  oneLine: "차량 출입 사전 예약(자재/목적) 및 실적 관리",
+  overview: { users: "자재 담당, 협력업체, 정문 경비", difficulty: "★★★☆☆", period: "5~7영업일" },
+  purpose: "현장에 들어오는 차량이 어떤 자재를 싣고, 어떤 목적으로, 언제 오는지 사전에 예약하게 하고, 실제 출입 실적을 관리하는 시스템입니다. 현장 앞 도로 혼잡, 양중·하역 장비 충돌, 불필요 차량 진입을 방지합니다.",
+  effects: null,
+  extras: [],
+  featuresSec: "§1.2",
+  features: [
+    ["출입 예약", "일자, 시간대, 차량번호, 차종/톤수, 업체, 목적(자재반입/폐기물반출/장비/방문 등), 자재명·수량 입력"],
+    ["하역 구역/장비 배정", "하역 위치(게이트, 하역장), 사용 양중 장비(타워크레인, 지게차) 지정"],
+    ["시간대 제한", "시간대별 최대 차량 수(슬롯) 설정, 초과 시 다른 시간 제안"],
+    ["승인 흐름", "업체 예약 → 자재 담당자 승인 → (대형차 시) 안전/소장 승인"],
+    ["정문 확인", "경비원 단말/태블릿에서 오늘 예약 목록 조회, 차량번호 인식(LPR) 연동 시 자동 입·출차 처리"],
+    ["실적 관리", "입차/출차 시각, 체류시간, 예약 대비 실적"],
+    ["노쇼/지연 관리", "미도착, 시간 초과 체류 시 알림, 업체별 위반 이력"],
+    ["통계", "일별/업체별/자재별 반입 차량 수, 피크 시간대 분석"],
+    ["철골 연계", "철골 자재관리(③)의 출하 건을 예약으로 자동 생성"]
+  ],
+  rules: { sec: "§1.3", title: "예약 규칙 (기본값, 현장별 조정)", items: [
+    "예약은 방문 전일 15:00까지 등록",
+    "승용/소형(1톤 이하): 승인 없이 자동 허용 옵션 가능",
+    "대형 차량(5톤 이상), 트레일러, 레미콘, 장비 차량: 자재 담당자 + 안전 담당자 승인 필수",
+    "시간대 슬롯: 30분 단위, 슬롯당 최대 3대 (하역장 수 기준)",
+    "출입 가능 시간: 07:00~17:00 (러시아워·민원 시간대 제한은 현장별 설정)",
+    "체류 한도: 하역 60분 (초과 시 알림)"
+  ]},
+  roles: [
+    { role: "사업부 시스템운영팀", items: [
+      "현장 코드에 차량 모듈 활성화",
+      "차종 코드, 목적 코드, 자재 분류 코드 표준 제공",
+      "LPR(차량번호 인식) 카메라 연동 시 IT와 협의",
+      "경비 단말 앱 배포",
+      "현장 담당자·경비 교육"]},
+    { role: "현장 자재 담당자 (공사팀)", items: [
+      "출입구/하역구역 정의 (정문, 후문, 하역장 A/B, 임시 야적장 위치)",
+      "시간대 슬롯 및 최대 대수 확정",
+      "승인 기준 정의 (톤수, 차종, 자재 종류별)",
+      "주요 자재 코드 선정 (철근, 레미콘, 거푸집, 설비자재, 마감자재 등)",
+      "협력업체 대상 예약 규칙 안내",
+      "양중 장비(타워크레인/지게차) 운영 시간표 확보"]},
+    { role: "안전 담당자", items: [
+      "대형 차량 진입 승인 기준 (진입로 폭, 신호수 배치 여부)",
+      "신호수/유도원 배치 계획 및 인원 확정",
+      "차량 속도 제한, 보행자 동선 분리 현황 점검",
+      "위험 차량(위험물 운반 등) 별도 절차 마련"]},
+    { role: "현장소장", items: [
+      "대형 차량 승인 권한 위임 범위 결정",
+      "도로 점용·교통 협의 사항 확인 (필요 시 관할 기관)",
+      "위반 업체 제재 기준 승인 (예: 노쇼 3회 → 예약 제한)"]},
+    { role: "정문 경비/게이트 운영자", items: [
+      "경비 단말(태블릿) 수령 및 사용 교육 이수",
+      "당일 예약 목록 확인 → 차량번호 대조 → 입차 처리 절차 숙지",
+      "미예약 차량 대응 절차 숙지 (현장 자재 담당자에게 확인 요청)",
+      "출차 확인 및 체류시간 확인"]},
+    { role: "협력업체 / 자재 공급사", items: [
+      "예약 담당자 계정 신청",
+      "반입 차량 정보 사전 파악 (차량번호, 기사 연락처, 톤수)",
+      "반입 자재 정보 (자재명, 수량, 납품서 번호)",
+      "운전기사에게 현장 진입 규칙 안내 (안전모, 속도, 신호수 지시)",
+      "레미콘·펌프카는 타설 계획에 맞춰 예약 (작업현황 연계)"]},
+    { role: "본사 IT (LPR 설치 시)", items: [
+      "차량번호 인식 카메라 설치 및 네트워크 설정",
+      "차단기 연동 (옵션)",
+      "장애 시 수동 모드 전환 절차 마련"]}
+  ],
+  setup: { title: "셋업 절차 (표준 5~7영업일)", headers: ["일차", "작업", "담당", "산출물"], rows: [
+    ["사전", "현장 출입구·하역장 배치 확정 (가설계획도 반영)", "현장 자재 담당", "출입구/하역장 정의서"],
+    ["1일차", "차량 모듈 활성화, 코드 표준 반영", "시스템운영팀", "활성화 확인"],
+    ["1일차", "출입구·하역구역·장비 등록", "현장 자재 담당", "기준정보"],
+    ["2일차", "시간대 슬롯, 승인 규칙 설정", "현장 자재 + 안전", "규칙 설정서"],
+    ["2일차", "협력업체 계정 신청/발급", "업체 + 운영팀", "계정 대장"],
+    ["3일차", "경비 단말 설정, 경비 교육", "운영팀", "교육 이수"],
+    ["4일차", "협력업체 교육 (예약 방법, 규칙)", "운영팀/현장", "이수 명단"],
+    ["5일차", "모의 예약 → 승인 → 입차 → 출차 리허설", "전원", "리허설 결과"],
+    ["6~7일차", "(LPR 사용 시) 카메라 연동 테스트", "IT", "연동 결과서"]
+  ], note: "" },
+  forms: [
+    ["SYS-401", "출입구/하역구역 정의서", "자재 담당"],
+    ["SYS-402", "차량 출입 승인 기준표", "자재 + 안전"],
+    ["SYS-403", "협력업체 예약 담당자 계정 신청서", "협력업체"],
+    ["SYS-404", "경비 단말 인수 확인서", "경비"]
+  ],
+  flow: [
+    "협력업체: 전일 15:00까지 출입 예약 등록 (차량번호/목적/자재/희망 시간)",
+    "자재 담당자: 슬롯·하역장 가용 확인 후 승인 (오전 중 미승인 건은 대기)",
+    "대형 차량: 안전 담당자 추가 승인",
+    "당일 06:30: 경비 단말에 당일 예약 목록 자동 반영",
+    "차량 도착: 경비가 차량번호 확인 → 입차 처리 (LPR 시 자동)",
+    "하역 완료 후 출차 → 출차 처리 → 체류시간 자동 계산",
+    "일마감: 예약 대비 실적, 노쇼·초과 체류 리포트"
+  ],
+  faq: [
+    ["신규 현장에서 차량 출입관리를 쓰려면 누가 무엇을 준비해야 하나요?", "현장 자재 담당자가 출입구·하역구역·시간대 슬롯을 정리하고, 안전 담당자가 대형차 승인 기준을 정합니다. 협력업체는 예약 담당자 계정을 신청하면 됩니다. 경비 인원은 단말 교육을 받아야 합니다."],
+    ["예약 없이 온 차량은 어떻게 하나요?", "경비가 자재 담당자에게 확인 후 '긴급 현장 등록'으로 예약을 즉시 생성할 수 있습니다. 이 경우 노쇼/위반 통계에 '미예약 반입'으로 기록됩니다.", true],
+    ["레미콘 차량은 어떻게 예약하나요?", "타설 계획 일정에 맞춰 시간대별 대수를 한 번에 예약할 수 있는 '일괄 예약' 기능을 사용합니다. 레미콘은 대형 차량이므로 안전 승인이 필요합니다."],
+    ["시간대가 꽉 차서 예약이 안 돼요.", "시스템이 가까운 가능 시간대를 제안합니다. 긴급 건은 자재 담당자에게 슬롯 증설을 요청하세요."],
+    ["차량번호가 바뀌었어요.", "예약 상태가 '승인' 이전이면 업체가 직접 수정, 이후면 자재 담당자 승인 후 수정 가능합니다."]
+  ],
+  contacts: ["시스템운영팀 박OO 책임 (02-000-1001)", "LPR/장비: 본사 IT 이OO 과장 (02-000-1003)"],
+  concepts: [
+    { feature: "출입 예약", terms: ["차량", "트럭", "덤프", "레미콘", "펌프카", "트레일러", "출입 예약", "반입 예약", "진입 예약", "방문 예약", "자재 반입", "자재반입", "폐기물 반출", "싣고"] },
+    { feature: "정문 확인", terms: ["정문", "경비", "차량번호", "번호판", "lpr", "차단기"] },
+    { feature: "시간대 제한", terms: ["시간대", "도로 혼잡", "교통 혼잡", "슬롯", "들어오는 시간"] },
+    { feature: "하역 구역/장비 배정", terms: ["하역", "지게차", "야적"] },
+    { feature: "노쇼/지연 관리", terms: ["노쇼", "미도착", "체류시간", "체류 시간"] },
+    { feature: "실적 관리", terms: ["입차", "출차"] }
+  ]
+},
+/* ---------------------------------------------------------- ⑤ 현장문서관리 */
+{
+  id: "docs", no: 5, name: "현장문서관리", file: "05_현장문서관리.md", category: "필수",
+  oneLine: "공사 착수 전 허가 서류 등록 및 전자결재",
+  overview: { users: "공무/안전/품질 담당, 협력업체, 감리", difficulty: "★★★☆☆", period: "5~7영업일" },
+  purpose: "공사를 진행하기 전 사전에 허가·승인을 받아야 하는 각종 서류를 종이 결재(서류 들고 다니며 도장 받기)가 아닌 시스템에 등록하고 전자결재로 처리하여 대기 시간, 분실, 이력 추적 어려움을 해소합니다.",
+  effects: null,
+  extras: [
+    { type: "table", view: "approval", sec: "§1.2", title: "관리 대상 문서 유형 및 기본 결재선", locked: true, headers: ["분류", "문서 예시", "기본 결재선"], rows: [
+      ["안전", "화기작업 허가서, 고소작업 허가서, 밀폐공간 작업 허가서, 중장비 작업계획서, 굴착작업 허가서, 전기작업 허가서", "협력업체 → 안전 담당 → 공사 담당 → 현장소장"],
+      ["공사", "공사 착수 신고서, 작업 변경 요청서, 임시 가설물 설치 신청서, 양중 계획서", "협력업체 → 공종 담당 → 공무 → 소장"],
+      ["품질", "자재 승인 요청서(MAR), 시공 상세 도면 승인 요청, 검측 요청서(WIR)", "협력업체 → 품질 담당 → 감리"],
+      ["환경", "폐기물 처리 계획서, 소음·진동 작업 신고", "협력업체 → 환경 담당 → 소장"],
+      ["행정", "도로 점용 신청, 민원 대응 보고, 인허가 관련", "공무 → 소장"],
+      ["공통", "일반 공문, 협조 요청서", "설정 가능"]
+    ]}
+  ],
+  featuresSec: "§1.3",
+  features: [
+    ["문서 양식 관리", "표준 양식 제공, 현장별 양식 추가"],
+    ["전자결재", "순차/병렬 결재, 합의, 반려, 재상신"],
+    ["결재선 템플릿", "문서 유형별 기본 결재선 자동 지정"],
+    ["첨부 관리", "도면, 사진, 시험성적서 첨부 (파일당 50MB)"],
+    ["모바일 결재", "앱 푸시 알림, 현장에서 즉시 결재"],
+    ["대리 결재/부재 설정", "휴가·출장 시 대결자 지정"],
+    ["유효기간 관리", "허가서 유효기간 설정, 만료 알림"],
+    ["문서 대장", "문서 번호 자동 채번, 대장 출력, 이력 검색"],
+    ["외부 결재자", "감리·발주처 외부 사용자 제한된 접근"],
+    ["작업 연계", "승인된 허가서가 있어야 해당 작업 등록 가능 (옵션, 시스템① 연계)"]
+  ],
+  rules: { sec: "§1.4", title: "처리 기한 기준 (기본값)", items: [
+    "일반 허가서: 상신 후 영업일 1일 이내 결재 완료 목표",
+    "긴급 허가서: 당일 처리, 사후 보완 서류 허용 (소장 승인 시)",
+    "결재자 24시간 미처리 시 상위자 및 본인에게 재알림"
+  ]},
+  roles: [
+    { role: "사업부 시스템운영팀", items: [
+      "현장 코드에 문서 모듈 활성화",
+      "표준 양식 세트 제공 (약 25종)",
+      "표준 결재선 템플릿 제공",
+      "문서 번호 채번 규칙 설정 (예: [현장코드]-[분류]-[연도]-[일련번호])",
+      "관리자 교육 (2시간), 결재자 교육 (1시간)",
+      "감리·발주처 외부 계정 발급 지원"]},
+    { role: "현장소장", items: [
+      "문서 유형별 최종 결재권자 및 위임 범위 결정",
+      "긴급 허가 사후 승인 정책 결정",
+      "전자결재 전면 시행일 공표 (종이 결재 병행 종료일)"]},
+    { role: "현장 시스템 담당자 (공무팀)", items: [
+      "현장에서 사용할 문서 유형 선정 (표준 25종 중 사용/미사용 선택)",
+      "현장 고유 양식 추가 필요 건 취합 → 시스템운영팀에 요청",
+      "결재선 설계표 작성 (문서 유형 × 결재자)",
+      "직원 계정 및 직책/조직 등록",
+      "협력업체 문서 상신 담당자 지정 및 계정 취합",
+      "감리단·발주처 결재자 정보 취합",
+      "대결자(대리 결재자) 지정표 작성",
+      "문서 유효기간 정책 수립"]},
+    { role: "안전 담당자", items: [
+      "허가서 양식 항목(점검 체크리스트) 검토 및 확정",
+      "위험 작업별 필수 첨부 서류 정의 (예: 화기작업 시 소화기 배치 사진)",
+      "허가서 유효기간 기준 (예: 화기 1일, 고소 3일)"]},
+    { role: "품질/환경/공종 담당자", items: [
+      "각 분야 문서 양식 및 결재선 확인",
+      "검측 요청서 접수·처리 기한 설정"]},
+    { role: "감리단 / 발주처 (외부)", items: [
+      "외부 결재자 정보 제공 (성명, 이메일, 휴대폰)",
+      "결재 대상 문서 유형 합의 (착공신고, 자재승인, 검측 등)",
+      "계정 활성화 및 인증 (2단계 인증)",
+      "모바일 결재 앱 설치"]},
+    { role: "협력업체 현장대리인", items: [
+      "문서 상신 담당자 계정 신청",
+      "자주 쓰는 문서 사전 준비 (작업계획서 서식 등)",
+      "자격증·교육 이수증 등 첨부용 스캔본 사전 보관",
+      "1시간 온라인 교육 이수"]},
+    { role: "직원 결재자 (팀장, 담당자 등)", items: [
+      "모바일 앱 설치 및 푸시 알림 허용",
+      "부재 시 대결 설정 방법 숙지"]}
+  ],
+  setup: { title: "셋업 절차 (표준 5~7영업일)", headers: ["일차", "작업", "담당", "산출물"], rows: [
+    ["1일차", "모듈 활성화, 표준 양식·결재선 템플릿 로드", "시스템운영팀", "활성화 확인"],
+    ["1일차", "사용 문서 유형 선정", "현장 시스템 담당", "문서 유형 선정표"],
+    ["2일차", "결재선 설계표 작성 및 소장 승인", "현장 시스템 담당 + 소장", "결재선 설계표 SYS-501"],
+    ["2일차", "직원·조직·직책 등록", "현장 시스템 담당", "사용자 등록"],
+    ["3일차", "결재선·양식 시스템 반영", "시스템운영팀", "반영 확인"],
+    ["3일차", "협력업체·감리 계정 발급", "시스템운영팀", "계정 대장"],
+    ["4일차", "결재자 교육 / 협력업체 교육", "시스템운영팀", "이수 명단"],
+    ["5일차", "모의 문서 상신 → 결재 → 완료 리허설", "전원", "리허설 결과"],
+    ["6~7일차", "감리·발주처 결재 연동 테스트", "외부 + 운영팀", "테스트 결과서"],
+    ["오픈", "전면 시행일 공표, 종이 결재 종료일 안내", "소장", "공고문"]
+  ], note: "" },
+  forms: [
+    ["SYS-501", "결재선 설계표", "현장 시스템 담당"],
+    ["SYS-502", "대결자 지정표", "현장 시스템 담당"],
+    ["SYS-503", "외부 결재자(감리/발주처) 등록 요청서", "현장 시스템 담당"],
+    ["SYS-504", "협력업체 상신 담당자 계정 신청서", "협력업체"],
+    ["SYS-505", "현장 추가 양식 요청서", "현장 시스템 담당"]
+  ],
+  flow: [
+    "협력업체: 작업 전일 허가서 작성·첨부 → 상신",
+    "안전 담당자: 현장 확인 후 모바일 결재 (필요 시 반려 사유 입력)",
+    "공사 담당 → 소장: 순차 결재",
+    "결재 완료: 업체에 알림, 허가서 PDF 자동 생성 (QR 포함, 현장 게시용 출력)",
+    "작업 현장: 허가서 QR 스캔 시 유효 여부 확인",
+    "유효기간 만료 1일 전: 알림 → 연장 또는 종료 처리",
+    "월말: 문서 대장 출력, 미결 문서 점검"
+  ],
+  faq: [
+    ["신규 현장에서 현장문서관리를 쓰려면 누가 무엇을 준비하나요?", "현장 시스템 담당자가 문서 유형과 결재선 설계표를 작성하고, 소장 승인을 받아 시스템운영팀에 전달합니다. 협력업체는 상신 담당자 계정을, 감리·발주처는 외부 결재자 정보를 제공해야 합니다."],
+    ["감리 결재는 어떻게 받나요?", "감리단 결재자를 외부 계정으로 등록하면 해당 문서만 접근·결재할 수 있습니다. 감리가 시스템 사용을 거부하는 경우 서면 승인본 스캔 첨부로 대체할 수 있습니다."],
+    ["급하게 작업해야 하는데 결재가 안 났어요.", "긴급 허가 기능으로 소장 구두 승인 후 사후 서류를 보완할 수 있습니다. (소장 정책 설정 필요)"],
+    ["결재선을 바꾸고 싶어요.", "진행 중 문서는 결재자 변경 요청을 통해 관리자가 수정하며, 이후 문서의 기본 결재선은 현장 시스템 담당자가 변경 신청합니다."],
+    ["현장 고유 양식을 추가하고 싶어요.", "양식 요청서(SYS-505)에 기존 서식 파일을 첨부하여 시스템운영팀에 제출하면 약 3영업일 내 반영됩니다."],
+    ["종이 결재와 병행해도 되나요?", "오픈 후 최대 2주간 병행을 권장하며, 이후에는 시스템 결재만 인정하도록 소장이 공표합니다."]
+  ],
+  contacts: ["시스템운영팀 박OO 책임 (02-000-1001)", "양식/결재선: 김OO 대리 (02-000-1002)"],
+  concepts: [
+    { feature: "전자결재", terms: ["결재", "전자결재", "도장", "종이", "오프라인", "승인 받", "승인받", "상신", "반려"] },
+    { feature: "문서 양식 관리", terms: ["허가서", "작업 허가", "작업계획서", "신고서", "신청서", "서류", "문서", "양식", "화기작업", "밀폐공간", "굴착작업", "전기작업"] },
+    { feature: "외부 결재자", terms: ["감리", "발주처"] },
+    { feature: "유효기간 관리", terms: ["유효기간", "만료"] },
+    { feature: "문서 대장", terms: ["문서 대장", "문서대장", "문서 번호", "이력 검색", "분실"] },
+    { feature: "관리 대상 문서 유형 (품질)", terms: ["검측", "자재 승인", "mar", "wir"], ref: "자재 승인 요청서(MAR), 시공 상세 도면 승인 요청, 검측 요청서(WIR) — 결재선: 협력업체 → 품질 담당 → 감리", refSec: "§1.2" }
+  ]
+}
+];
+
+/* 정산·책임 근거 질문 → 원문 규칙 박스 (요약·재해석 없이 원문 그대로) */
+const RULE_LOOKUPS = [
+  { terms: ["공수", "인일", "출역 인정", "기성", "정산", "노무비"], kind: "rules", sys: "attendance" },
+  { terms: ["비용", "부담", "가설비"], kind: "faq", sys: "attendance", faqIdx: 4 },
+  { terms: ["예약 규칙", "예약 마감", "몇시까지 예약", "언제까지 예약", "체류 한도", "출입 가능 시간"], kind: "rules", sys: "vehicle" },
+  { terms: ["제재", "노쇼", "위반", "미예약"], kind: "items", sys: "vehicle", title: "위반·제재 관련 원문",
+    items: [["§2.4 현장소장", "위반 업체 제재 기준 승인 (예: 노쇼 3회 → 예약 제한)"], ["§1.2 주요 기능", "노쇼/지연 관리 — 미도착, 시간 초과 체류 시 알림, 업체별 위반 이력"], ["§6 FAQ Q2", "경비가 자재 담당자에게 확인 후 '긴급 현장 등록'으로 예약을 즉시 생성할 수 있습니다. 이 경우 노쇼/위반 통계에 '미예약 반입'으로 기록됩니다."]] },
+  { terms: ["결재선", "결재 라인", "결재라인", "누가 결재"], kind: "extra", sys: "docs", extraIdx: 0 },
+  { terms: ["처리 기한", "결재 기한", "며칠 안에", "긴급 허가"], kind: "rules", sys: "docs" },
+  { terms: ["입력 마감", "등록 마감", "몇시까지 등록", "언제까지 등록", "마감 시간"], kind: "rules", sys: "work" },
+  { terms: ["필수 시스템", "필수 적용", "의무 적용", "꼭 써야", "반드시 써야", "적용 대상", "적용 기준", "써야 하는 시스템", "필수로"], kind: "mandatory" }
+];
+
+/* =====================================================================
+   공통 유틸
+   ===================================================================== */
+const $app = document.getElementById("app");
+const byId = id => SYSTEMS.find(s => s.id === id);
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function src(file, sec) { return '<span class="src">출처: ' + esc(file) + (sec ? " " + esc(sec) : "") + "</span>"; }
+function tbl(headers, rows) {
+  return "<table><thead><tr>" + headers.map(h => "<th>" + esc(h) + "</th>").join("") + "</tr></thead><tbody>" +
+    rows.map(r => "<tr>" + r.map(c => "<td>" + esc(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+}
+function lockedBox(title, inner, srcHtml) {
+  return '<div class="locked"><div class="lock-h">원문 고정 · 정산/책임 근거 규칙 — 요약·재해석 없이 기준 문서 원문 그대로 표시</div><strong>' +
+    esc(title) + "</strong>" + srcHtml + inner + "</div>";
+}
+function catBadge(c) { return '<span class="badge ' + (c === "필수" ? "b-ok" : "b-warn") + '">' + esc(c) + "</span>"; }
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 1800); }
+function store(key, val) { try { if (val === undefined) { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; } }
+function download(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+function related(id) { return OVERVIEW.relations.filter(r => r.a === id || r.b === id); }
+// 부드러운 스크롤은 일부 내장 브라우저에서 동작하지 않아 즉시 이동 (상단 고정 메뉴 높이만큼 보정)
+function scrollToId(id) {
+  const el = document.getElementById(id); if (!el) return;
+  const hd = document.querySelector("header.top");
+  window.scrollTo(0, el.getBoundingClientRect().top + window.pageYOffset - (hd ? hd.offsetHeight : 0) - 10);
+}
+
+/* 화면 내 대화상자 — 브라우저 기본 prompt/confirm/alert는 앱 내장 브라우저 등에서 동작하지 않으므로 사용하지 않음
+   onOk가 문자열을 돌려주면 오류 메시지로 표시하고 창을 닫지 않음 */
+function openModal(o) {
+  closeModal();
+  const bg = document.createElement("div");
+  bg.className = "modal-bg noprint"; bg.id = "modalBg";
+  bg.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><h3>' + esc(o.title) + "</h3>" + (o.body || "") +
+    '<div class="err" id="mErr"></div><div class="btn-row" style="justify-content:flex-end">' +
+    (o.cancelText ? '<button class="btn ghost" id="mCancel">' + esc(o.cancelText) + "</button>" : "") +
+    '<button class="btn' + (o.danger ? " danger" : "") + '" id="mOk">' + esc(o.okText || "확인") + "</button></div></div>";
+  document.body.appendChild(bg);
+  const ok = () => {
+    const r = o.onOk ? o.onOk() : true;
+    if (typeof r === "string") { document.getElementById("mErr").textContent = r; return; }
+    closeModal();
+  };
+  document.getElementById("mOk").onclick = ok;
+  if (o.cancelText) document.getElementById("mCancel").onclick = closeModal;
+  bg.addEventListener("click", e => { if (e.target === bg) closeModal(); });
+  bg.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  if (o.onOpen) o.onOpen();
+  const f = bg.querySelector("textarea:not([readonly]),input[type=text]") || document.getElementById("mOk");
+  f.focus();
+}
+function closeModal() { const m = document.getElementById("modalBg"); if (m) m.remove(); }
+function askConfirm(title, msg, okText, onOk) {
+  openModal({ title: title, body: "<p>" + esc(msg) + "</p>", okText: okText, cancelText: "취소", danger: true, onOk: () => { onOk(); return true; } });
+}
+function askText(title, msg, ph, okText, onOk) {
+  openModal({ title: title, body: '<p class="small">' + esc(msg) + '</p><textarea id="mInput" rows="3" placeholder="' + esc(ph) + '"></textarea>',
+    okText: okText, cancelText: "취소", danger: true,
+    onOk: () => { const v = document.getElementById("mInput").value.trim(); if (!v) return "사유를 입력해야 삭제할 수 있어요."; onOk(v); return true; } });
+}
+function copyText(ta) {
+  ta.select();
+  const done = () => toast("복사했어요");
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { try { document.execCommand("copy"); done(); } catch (e) { toast("Ctrl+C로 복사하세요"); } });
+  else { try { document.execCommand("copy"); done(); } catch (e) { toast("Ctrl+C로 복사하세요"); } }
+}
+/* 인쇄 버튼 공통 처리 */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-print]"); if (!b) return;
+  toast("인쇄 창이 뜨지 않으면 Edge·Chrome에서 이 파일을 직접 열어 인쇄하세요");
+  setTimeout(() => window.print(), 50);
+});
+
+/* =====================================================================
+   2단계 대조 — AI 판단 대체 로직 (키워드·동의어 매칭, 결정적)
+   - 입력과 용어를 정규화(소문자·공백 제거) 후 포함 여부로 점수 계산
+   - 점수 2 이상: 추천 / 1: 부분 대응 / 0: 해당 없음
+   - 난수·시간을 쓰지 않으므로 같은 입력 → 같은 결과
+   ===================================================================== */
+function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, ""); }
+function featureDesc(sys, concept) {
+  if (concept.ref) return { desc: concept.ref, sec: concept.refSec || sys.featuresSec };
+  const f = sys.features.find(x => x[0] === concept.feature);
+  return { desc: f ? f[1] : sys.purpose, sec: sys.featuresSec };
+}
+function matchSystems(query) {
+  const nq = norm(query);
+  if (!nq) return [];
+  const out = [];
+  SYSTEMS.forEach(sys => {
+    const hits = []; const seen = new Set();
+    sys.concepts.forEach(c => {
+      const terms = [];
+      c.terms.forEach(t => { const nt = norm(t); if (nt && nq.includes(nt) && !seen.has(nt)) { seen.add(nt); terms.push(t); } });
+      if (terms.length) hits.push(Object.assign({ feature: c.feature, terms: terms }, featureDesc(sys, c)));
+    });
+    const score = hits.reduce((n, h) => n + h.terms.length, 0);
+    if (score > 0) out.push({ sys: sys, hits: hits, score: score, verdict: score >= 2 ? "추천" : "부분 대응" });
+  });
+  out.sort((a, b) => b.score - a.score || a.sys.no - b.sys.no);
+  return out;
+}
+function matchRules(query) {
+  const nq = norm(query);
+  return RULE_LOOKUPS.filter(r => r.terms.some(t => nq.includes(norm(t))));
+}
+function renderRuleLookup(r) {
+  if (r.kind === "mandatory") {
+    return lockedBox("필수 vs 선택 적용 기준", tbl(["시스템", "구분", "판단 기준"], OVERVIEW.mandatory), src(F0, "§5"));
+  }
+  const s = byId(r.sys);
+  if (r.kind === "rules") return lockedBox(s.name + " — " + s.rules.title, "<ul>" + s.rules.items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul>", src(s.file, s.rules.sec));
+  if (r.kind === "faq") { const f = s.faq[r.faqIdx]; return lockedBox(s.name + " — FAQ: " + f[0], "<p style='margin:6px 0 0'>" + esc(f[1]) + "</p>", src(s.file, "§6 Q" + (r.faqIdx + 1))); }
+  if (r.kind === "extra") { const x = s.extras[r.extraIdx]; return lockedBox(s.name + " — " + x.title, tbl(x.headers, x.rows), src(s.file, x.sec)); }
+  if (r.kind === "items") return lockedBox(s.name + " — " + r.title, "<ul>" + r.items.map(i => "<li><span class='muted small'>[" + esc(i[0]) + "]</span> " + esc(i[1]) + "</li>").join("") + "</ul>", src(s.file, ""));
+  return "";
+}
+
+/* =====================================================================
+   화면 ① 업무로 찾기
+   ===================================================================== */
+let lastQuery = "";
+const EXAMPLES = [
+  "협력업체 근로자가 몇 시에 출근하고 퇴근했는지 보고 싶어",
+  "내일 작업 계획을 미리 올리고 싶어",
+  "레미콘 차량 들어오는 시간 예약",
+  "화기작업 허가서 결재를 종이 말고 받고 싶어",
+  "철골 제작 진행 상황 확인",
+  "출역 공수는 어떻게 인정돼?",
+  "현장 식당 식권 관리"
+];
+function pageHome() {
+  $app.innerHTML =
+    '<section class="card hero">' +
+      "<h1>어떤 업무를 시스템으로 하고 싶으세요?</h1>" +
+      '<div class="muted">하고 싶은 업무를 문장으로 적으면, 맞는 시스템을 제안하고 소개 페이지로 연결해 드려요. 맞는 시스템이 없으면 구축 요청 계획서를 작성할 수 있어요.</div>' +
+      '<textarea id="q" rows="3" placeholder="예) 협력업체별로 누가 몇 시에 들어오고 나갔는지 확인하고 싶어요"></textarea>' +
+      '<div class="btn-row"><button class="btn" id="go">시스템 찾기</button></div>' +
+      '<div class="chips">' + EXAMPLES.map(e => '<button class="chip" data-ex="' + esc(e) + '">' + esc(e) + "</button>").join("") + "</div>" +
+    "</section>" +
+    '<div id="results"></div>' +
+    '<section class="card"><h2>전체 시스템 바로가기</h2>' + sysGrid() + "</section>";
+  const q = document.getElementById("q");
+  q.value = lastQuery;
+  document.getElementById("go").onclick = () => runQuery(q.value);
+  q.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runQuery(q.value); } });
+  $app.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => { q.value = b.dataset.ex; runQuery(b.dataset.ex); });
+  if (lastQuery) runQuery(lastQuery);
+}
+function runQuery(query) {
+  lastQuery = query.trim();
+  const box = document.getElementById("results");
+  if (!lastQuery) { box.innerHTML = ""; return; }
+  const res = matchSystems(lastQuery);
+  const rules = matchRules(lastQuery);
+  // 대화형 첫 문장 (정해진 문장 틀에 판정 결과만 채움)
+  const recs = res.filter(r => r.verdict === "추천").map(r => "<b>" + esc(r.sys.name) + "</b>");
+  const parts = res.filter(r => r.verdict !== "추천").map(r => "<b>" + esc(r.sys.name) + "</b>");
+  const lead = !res.length ? "기준 문서의 시스템 중에는 이 업무에 맞는 시스템이 없어요. 구축 요청 계획서로 정리해 보세요."
+    : recs.length ? "이 업무에는 " + recs.join(", ") + " 시스템을 추천해요." + (parts.length ? " " + parts.join(", ") + "도 일부 관련이 있어요." : "")
+    : parts.join(", ") + " 시스템이 일부만 맞아요. 근거를 확인하고, 부족한 기능은 구축(개선) 요청으로 정리하세요.";
+  let h = '<section class="card"><h2>판정 결과</h2>' +
+    '<p class="small muted" style="margin:0">요청: “' + esc(lastQuery) + "”</p>" +
+    '<p class="lead">' + lead + "</p>" +
+    '<div class="ai-note">AI 판단 대체 로직(키워드·동의어 매칭)으로 판정했어요. 근거를 확인하고 실제 업무와 맞는지 직접 판단해 주세요.</div>';
+  if (rules.length) {
+    h += "<h3>관련 원문 규칙</h3>" + rules.map(renderRuleLookup).join("");
+  }
+  if (!res.length) {
+    h += '<div class="result r-no"><span class="badge b-no">해당 없음</span> <strong style="margin-left:6px">기준 문서의 5개 시스템 기능 중 대응되는 항목을 찾지 못했어요.</strong>' +
+      '<p class="small muted">억지로 추천하지 않아요. 필요한 업무를 정리해 시스템 구축 요청 계획서를 작성해 보세요.</p>' +
+      '<div class="btn-row"><button class="btn" data-req="1">구축 요청 계획서 작성</button><a class="btn ghost" href="#/systems">전체 시스템 보기</a></div></div>';
+  } else {
+    res.forEach(r => {
+      const ok = r.verdict === "추천";
+      h += '<div class="result ' + (ok ? "r-ok" : "r-warn") + '" style="' + sysVars(r.sys.id) + '">' +
+        '<div class="r-head"><span class="mini-ico">' + sysIcon(r.sys.id, 18) + "</span>" +
+        '<span class="badge ' + (ok ? "b-ok" : "b-warn") + '">' + r.verdict + "</span>" +
+        '<strong style="font-size:18px">' + esc(r.sys.no + ". " + r.sys.name) + "</strong>" + catBadge(r.sys.category) + "</div>" +
+        '<div class="muted small" style="margin-top:4px">' + esc(r.sys.oneLine) + src(F0, "§1") + "</div>" +
+        '<div style="margin-top:8px;font-size:13px;font-weight:600">판정 근거 (일치한 기능)</div>' +
+        r.hits.map(x => '<div class="hit"><strong>' + esc(x.feature) + "</strong> — " + esc(x.desc) + src(r.sys.file, x.sec) +
+          '<div class="small muted">일치한 표현: ' + x.terms.map(t => "<mark>" + esc(t) + "</mark>").join(", ") + "</div></div>").join("") +
+        (ok ? "" : '<p class="small" style="color:var(--warn);margin:6px 0 0">일부 표현만 대응돼요. 이 시스템으로 안 되는 기능은 구축(개선) 요청 대상으로 정리할 수 있어요.</p>') +
+        (related(r.sys.id).length ? '<div class="small" style="margin-top:6px"><strong>함께 쓰면 좋은 시스템</strong>' + src(F0, "§2") + "<ul style='margin:4px 0;padding-left:18px'>" + related(r.sys.id).map(x => "<li>" + esc(x.text) + "</li>").join("") + "</ul></div>" : "") +
+        '<div class="btn-row"><a class="btn" href="#/sys/' + r.sys.id + '">소개 페이지 보기</a>' +
+        '<a class="btn ghost" href="#/sys/' + r.sys.id + '/setup">셋업 준비사항 보기</a>' +
+        '<a class="btn ghost" href="#/rnr/' + r.sys.id + '">우리 현장 R&amp;R 작성</a>' +
+        (ok ? "" : '<button class="btn ghost" data-req="1">구축(개선) 요청</button>') + "</div></div>";
+    });
+    h += '<p class="small muted">원하는 기능이 아닌가요? <a href="javascript:void(0)" data-req="1">시스템 구축 요청 계획서 작성하기</a></p>';
+  }
+  h += "</section>";
+  box.innerHTML = h;
+  // 검색한 문장을 요청 업무로 넘김 (이전 초안은 새 요청 기준으로 다시 만들도록 초기화)
+  box.querySelectorAll("[data-req]").forEach(b => b.onclick = () => { req.need = lastQuery; req.drafted = false; saveReq(); location.hash = "#/request"; });
+}
+
+/* =====================================================================
+   화면 ② 시스템 목록
+   ===================================================================== */
+function sysGrid() {
+  return '<div class="grid">' + SYSTEMS.map(s =>
+    '<div class="syscard" style="' + sysVars(s.id) + '"><div class="t"><span class="mini-ico">' + sysIcon(s.id, 18) + "</span>" + esc(s.no + ". " + s.name) + " " + catBadge(s.category) + "</div>" +
+    '<div class="muted small">' + esc(s.oneLine) + "</div>" +
+    '<div class="small">주 사용자: ' + esc(s.overview.users) + "</div>" +
+    '<div class="btn-row" style="margin-top:auto"><a class="btn sm" href="#/sys/' + s.id + '">소개 보기</a><a class="btn ghost sm" href="#/rnr/' + s.id + '">R&amp;R 작성</a></div></div>'
+  ).join("") + "</div>";
+}
+function pageSystems() {
+  $app.innerHTML =
+    '<section class="card"><h1>시스템 목록</h1><div class="muted">' + esc(OVERVIEW.org) + "</div></section>" +
+    '<section class="card">' + sysGrid() + "</section>" +
+    '<section class="card"><h2>시스템 한눈에 보기' + src(F0, "§1") + "</h2>" +
+    tbl(["No", "시스템명", "한 줄 설명", "주 사용자", "현장 적용 난이도", "표준 셋업 기간"], SYSTEMS.map(s => [s.no, s.name, s.oneLine, s.overview.users, s.overview.difficulty, s.overview.period])) +
+    "</section>" +
+    '<section class="card">' + lockedBox("필수 vs 선택 적용 기준", tbl(["시스템", "구분", "판단 기준"], OVERVIEW.mandatory), src(F0, "§5")) + "</section>";
+}
+
+/* =====================================================================
+   화면 ③ 시스템 소개
+   ===================================================================== */
+/* 시스템별 고유 색·아이콘 (파일 내장 SVG, 외부 리소스 없음) */
+const SYS_STYLE = {
+  work:       { c: "#2563eb", bg: "#eef4ff", icon: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/>' },
+  attendance: { c: "#0f766e", bg: "#e7f5f3", icon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.8 14.6c2.3.3 4 2 4.7 4.9"/>' },
+  steel:      { c: "#c2410c", bg: "#fdf0e8", icon: '<path d="M4 4h16v3h-6v10h6v3H4v-3h6V7H4z"/>' },
+  vehicle:    { c: "#7c3aed", bg: "#f3eefe", icon: '<path d="M2 6h11v10H2zM13 10h4l3 3v3h-7z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>' },
+  docs:       { c: "#be185d", bg: "#fcedf4", icon: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13l2 2 4-4"/>' }
+};
+const LOCK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+function sysIcon(id, size) {
+  const st = SYS_STYLE[id]; size = size || 24;
+  return '<svg class="ico" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + st.icon + "</svg>";
+}
+function sysVars(id) { const st = SYS_STYLE[id]; return "--sc:" + st.c + ";--sbg:" + st.bg; }
+function headerH() { const hd = document.querySelector("header.top"); return hd ? hd.offsetHeight : 0; }
+
+/* '내 역할 보기' — 역할명과 셋업 절차·운영 흐름의 담당 표기를 대조해 강조 (표시 보조용, 판정·정산과 무관) */
+function roleKeys(role) {
+  const k = []; const add = (re, arr) => { if (re.test(role)) k.push.apply(k, arr); };
+  add(/시스템운영팀/, ["운영팀"]);
+  add(/현장 시스템 담당/, ["현장 시스템 담당", "현장 담당자"]);
+  add(/IT/, ["IT"]);
+  add(/현장소장/, ["소장"]);
+  add(/안전/, ["안전"]);
+  add(/협력업체/, ["협력업체", "업체"]);
+  add(/공종 담당/, ["공종 담당"]);
+  add(/철골 담당/, ["철골 담당", "현장 +"]);
+  add(/현장 자재 담당/, ["자재 담당", "자재 +"]);
+  add(/제작사/, ["제작사"]);
+  add(/감리/, ["감리", "외부"]);
+  add(/경비/, ["경비"]);
+  add(/운송사/, ["운송사"]);
+  add(/시공\(건립\)/, ["시공"]);
+  add(/품질/, ["품질"]);
+  return k;
+}
+function roleHit(text, role) { if (!role) return false; if (/전원/.test(text)) return true; return roleKeys(role).some(k => text.indexOf(k) >= 0); }
+const sysRoleSel = {};
+
+function pageSystem(id, anchor) {
+  const s = byId(id);
+  if (!s) { location.hash = "#/systems"; return; }
+  const rel = related(s.id);
+  const mand = OVERVIEW.mandatory.find(m => m[0] === s.name);
+  const role = sysRoleSel[s.id] || "";
+  const chip = (t, cls) => '<span class="chip-s' + (cls ? " " + cls : "") + '">' + esc(t) + "</span>";
+  const head = (id2, title, srcHtml, extra) => '<div class="sec-h" id="' + id2 + '"><h2>' + esc(title) + "</h2>" + (extra || "") + srcHtml + "</div>";
+  const toc = [];
+  if (s.rules) toc.push(["sec-rules", "꼭 지킬 규칙"]);
+  toc.push(["sec-intro", "시스템 소개"], ["sec-features", "주요 기능"], ["sec-roles", "누가 무엇을 준비하나"], ["sec-setup", "셋업 절차"], ["sec-forms", "필요 서식"], ["sec-flow", "운영 흐름"], ["sec-faq", "FAQ"], ["sec-contact", "문의처"]);
+
+  /* ── 머리 + 한눈에 보기 ── */
+  let h = '<div class="sys-page" style="' + sysVars(s.id) + '">' +
+    '<section class="sys-hero">' +
+      '<div class="crumb"><a href="#/systems">시스템 목록</a> › ' + esc(s.name) + "</div>" +
+      '<div class="sys-title"><span class="sys-ico">' + sysIcon(s.id, 30) + "</span><div>" +
+        '<div class="sys-kicker">시스템 ' + s.no + " · " + esc(s.category) + "</div>" +
+        "<h1>" + esc(s.name) + "</h1>" +
+        '<div class="sys-one">' + esc(s.oneLine) + "</div>" +
+        '<div class="sys-users">주 사용자 · ' + esc(s.overview.users) + "</div>" +
+      "</div></div>" +
+      '<div class="bento">' +
+        '<div class="tile t-purpose"><div class="tile-l">목적</div><div class="tile-v big">' + esc(s.purpose) + "</div>" + src(s.file, "§1.1") + "</div>" +
+        '<div class="tile t-feat"><div class="tile-l">주요 기능</div><ul class="mini-list">' + s.features.slice(0, 3).map(f => "<li>" + esc(f[0]) + "</li>").join("") + "</ul>" +
+          '<a class="more" href="javascript:void(0)" onclick="scrollToId(\'sec-features\')">전체 ' + s.features.length + "개 보기 ›</a></div>" +
+        '<div class="tile"><div class="tile-l">표준 셋업 기간</div><div class="tile-v">' + esc(s.overview.period) + '</div><div class="tile-s">적용 난이도 ' + esc(s.overview.difficulty) + "</div>" + src(F0, "§1") + "</div>" +
+        '<div class="tile"><div class="tile-l">적용 기준</div><div class="tile-v">' + esc(mand ? mand[1] : "미확인") + '</div><div class="tile-s">' + esc(mand ? mand[2] : "") + "</div>" + src(F0, "§5") + "</div>" +
+      "</div>" +
+      '<div class="btn-row noprint"><a class="btn sc" href="#/rnr/' + s.id + '">이 시스템으로 우리 현장 R&amp;R 작성</a><a class="btn ghost" href="#/roadmap">통합 셋업 로드맵</a><button class="btn ghost" data-print="1">인쇄</button></div>' +
+    "</section>" +
+
+    /* ── 내 역할 보기 ── */
+    '<section class="role-bar noprint"><span class="rb-l">내 역할 보기</span>' +
+      '<button class="rchip' + (role ? "" : " on") + '" data-role="">전체</button>' +
+      s.roles.map(r => '<button class="rchip' + (role === r.role ? " on" : "") + '" data-role="' + esc(r.role) + '">' + esc(r.role) + "</button>").join("") +
+      (role ? '<span class="rb-hint">선택한 역할의 준비사항과 담당 단계를 강조해요</span>' : "") +
+    "</section>" +
+
+    '<div class="sys-body"><nav class="side-toc noprint"><div class="st-h">목차</div>' +
+      toc.map(t => '<a href="javascript:void(0)" data-sec="' + t[0] + '" onclick="scrollToId(\'' + t[0] + '\')">' + esc(t[1]) + "</a>").join("") +
+    '</nav><div class="sys-main">';
+
+  /* ── 꼭 지킬 규칙 (원문 고정) ── */
+  if (s.rules) h += '<section class="sysec">' + head("sec-rules", "꼭 지킬 규칙", "") +
+    lockedBox(s.rules.title, "<ul>" + s.rules.items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul>", src(s.file, s.rules.sec)) + "</section>";
+
+  /* ── 1. 시스템 소개 ── */
+  h += '<section class="sysec">' + head("sec-intro", "1. 시스템 소개", "");
+  if (s.effects) h += "<h3>도입 효과" + src(s.file, s.effects.sec) + '</h3><div class="cgrid">' + s.effects.items.map(i => '<div class="c lv2"><div class="c-d">' + esc(i) + "</div></div>").join("") + "</div>";
+  s.extras.forEach(x => {
+    let inner = "";
+    if (x.type === "pre") inner = '<div class="c lv2"><pre class="flow" style="margin:0;border:none;background:none;padding:0">' + esc(x.text) + "</pre></div>";
+    else if (x.type === "list") inner = '<div class="cgrid">' + x.items.map(i => { const p = i.split(": "); return '<div class="c lv2">' + (p.length > 1 ? '<div class="c-t">' + esc(p[0]) + '</div><div class="c-d">' + esc(p.slice(1).join(": ")) + "</div>" : '<div class="c-d">' + esc(i) + "</div>") + "</div>"; }).join("") + "</div>";
+    else if (x.view === "steps") inner = '<ol class="stages">' + x.rows.map(r => '<li><span class="num">' + esc(r[0]) + '</span><div><div class="stg-t">' + esc(r[1]) + '</div><div class="c-d">' + esc(r[2]) + "</div>" + chip("입력: " + r[3]) + "</div></li>").join("") + "</ol>";
+    else if (x.view === "approval") inner = '<div class="appr">' + x.rows.map(r => '<div class="appr-r"><div class="appr-k">' + esc(r[0]) + '</div><div><div>' + r[1].split(", ").map(t => chip(t)).join("") + '</div><div class="chain">' + r[2].split(" → ").map(p => "<span>" + esc(p) + "</span>").join("<i>→</i>") + "</div></div></div>").join("") + "</div>";
+    else inner = tbl(x.headers, x.rows);
+    h += x.locked ? lockedBox(x.title, inner, src(s.file, x.sec)) : "<h3>" + esc(x.title) + src(s.file, x.sec) + "</h3>" + inner;
+  });
+  if (rel.length) h += "<h3>함께 쓰면 좋은 시스템" + src(F0, "§2") + '</h3><div class="cgrid wide">' + rel.map(r => {
+    const other = byId(r.a === s.id ? r.b : r.a);
+    return '<a class="c link" style="' + sysVars(other.id) + '" href="#/sys/' + other.id + '"><div class="c-t"><span class="mini-ico">' + sysIcon(other.id, 18) + "</span>" + esc(other.name) + ' <span class="go">›</span></div><div class="c-d">' + esc(r.text) + "</div></a>";
+  }).join("") + "</div>";
+  h += "</section>";
+
+  /* ── 주요 기능 ── */
+  h += '<section class="sysec">' + head("sec-features", "주요 기능", src(s.file, s.featuresSec)) +
+    '<div class="feat-list">' + s.features.map(f => '<div class="feat"><div class="feat-t">' + esc(f[0]) + '</div><div class="c-d">' + esc(f[1]) + "</div></div>").join("") + "</div></section>";
+
+  /* ── 2. 누가 무엇을 준비하나 ── */
+  h += '<section class="sysec">' + head("sec-roles", "2. 누가 무엇을 준비해야 하나", src(s.file, "§2"));
+  if (role) {
+    const r = s.roles.find(x => x.role === role);
+    h += '<div class="my-role"><div class="mr-h">내가 준비할 것 <span class="badge">' + esc(r.role) + " · " + r.items.length + '개</span></div><ul class="check big">' + r.items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul></div>" +
+      '<div class="other-roles noprint"><span class="small muted">다른 역할</span>' + s.roles.filter(x => x.role !== role).map(x => '<button class="rchip sm" data-role="' + esc(x.role) + '">' + esc(x.role) + " · " + x.items.length + "</button>").join("") + "</div>" +
+      '<div class="print-only">' + s.roles.filter(x => x.role !== role).map(x => '<div class="c lv2"><div class="c-t">' + esc(x.role) + '</div><ul class="check">' + x.items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul></div>").join("") + "</div>";
+  } else {
+    h += '<div class="cgrid wide">' + s.roles.map(r => '<div class="c"><div class="c-t">' + esc(r.role) + ' <span class="badge b-gray">' + r.items.length + '개</span></div><ul class="check">' + r.items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul></div>").join("") + "</div>";
+  }
+  h += '<div class="btn-row noprint"><a class="btn sc" href="#/rnr/' + s.id + '">이 체크리스트로 담당자 지정하기 (R&amp;R)</a></div></section>';
+
+  /* ── 3. 셋업 절차 (단계 표시) ── */
+  const five = s.setup.headers.length === 5;
+  const steps = s.setup.rows.map(r => ({ label: five ? "단계 " + r[0] + " · " + r[1] : r[0], task: five ? r[2] : r[1], owner: five ? r[3] : r[2], out: five ? r[4] : r[3] }));
+  const mine = role ? steps.filter(st => roleHit(st.owner, role)).length : 0;
+  h += '<section class="sysec">' + head("sec-setup", "3. " + s.setup.title, src(s.file, "§3"), role ? '<span class="badge mine-b">내 담당 단계 ' + mine + "개</span>" : "") +
+    '<ol class="tl">' + steps.map(st => {
+      const hit = roleHit(st.owner, role);
+      return '<li class="' + (role ? (hit ? "hit" : "dim") : "") + '"><div class="tl-when">' + esc(st.label) + '</div><div class="tl-dot"></div><div class="tl-body"><div class="tl-task">' + esc(st.task) + "</div>" +
+        chip("담당: " + st.owner, hit ? "on" : "") + chip("산출물: " + st.out) + "</div></li>";
+    }).join("") + "</ol>" +
+    (s.setup.note ? '<div class="note-box"><strong>참고</strong> ' + esc(s.setup.note) + "</div>" : "") +
+    '<p class="small muted">신규 현장 전체 일정과 공통 단계는 <a href="#/roadmap">통합 셋업 로드맵</a>을 함께 확인하세요.</p></section>';
+
+  /* ── 4. 필요 서식 ── */
+  h += '<section class="sysec">' + head("sec-forms", "4. 필요 서식", src(s.file, "§4")) +
+    '<div class="rowlist">' + s.forms.map(f => '<div class="rl"><span class="badge b-gray">' + esc(f[0]) + '</span><span class="rl-m">' + esc(f[1]) + '</span><span class="rl-s">작성 · ' + esc(f[2]) + "</span></div>").join("") + "</div></section>";
+
+  /* ── 5. 일상 운영 흐름 ── */
+  h += '<section class="sysec">' + head("sec-flow", "5. 일상 운영 흐름", src(s.file, "§5")) +
+    '<ol class="flow-list">' + s.flow.map((f, i) => '<li class="' + (role ? (roleHit(f, role) ? "hit" : "dim") : "") + '"><span class="num">' + (i + 1) + "</span><span>" + esc(f) + "</span></li>").join("") + "</ol></section>";
+
+  /* ── 6. FAQ ── */
+  h += '<section class="sysec">' + head("sec-faq", "6. 자주 묻는 질문 (FAQ)", src(s.file, "§6")) +
+    '<input type="text" class="faq-search noprint" id="faqQ" placeholder="FAQ에서 찾기 (예: 외국인, 마감, 계정)">' +
+    '<div id="faqList">' + s.faq.map((f, i) => '<details class="faq' + (f[2] ? " lockf" : "") + '"' + (f[2] ? " open" : "") + "><summary><span class=\"q\">Q" + (i + 1) + "</span>" + esc(f[0]) + (f[2] ? ' <span class="badge b-lock">원문 고정</span>' : "") + '</summary><p>' + esc(f[1]) + "</p></details>").join("") + "</div>" +
+    '<p class="small muted" id="faqNone" style="display:none">일치하는 질문이 없어요. 아래 문의처로 문의하세요.</p></section>';
+
+  /* ── 7. 문의처 ── */
+  h += '<section class="sysec">' + head("sec-contact", "7. 문의처", src(s.file, "§7")) +
+    '<div class="rowlist">' + s.contacts.map(c => '<div class="rl"><span class="rl-m">' + esc(c) + "</span></div>").join("") + "</div>" +
+    '<p class="small muted">공통 문의처는 <a href="#/roadmap">통합 셋업 로드맵</a> 하단을 참고하세요.</p></section>';
+
+  h += "</div></div></div>";
+  $app.innerHTML = h;
+
+  $app.querySelectorAll("[data-role]").forEach(b => b.onclick = () => {
+    sysRoleSel[s.id] = b.dataset.role; const y = window.pageYOffset;
+    pageSystem(s.id); window.scrollTo(0, y);
+    if (b.dataset.role) toast(b.dataset.role + " 기준으로 강조했어요");
+  });
+  const fq = document.getElementById("faqQ");
+  fq.addEventListener("input", () => {
+    const q = norm(fq.value); let shown = 0;
+    $app.querySelectorAll("#faqList details").forEach(d => { const ok = !q || norm(d.textContent).indexOf(q) >= 0; d.style.display = ok ? "" : "none"; if (ok) shown++; if (q && ok) d.open = true; });
+    document.getElementById("faqNone").style.display = shown ? "none" : "";
+  });
+  updateSpy();
+  if (anchor === "setup") { scrollToId("sec-roles"); requestAnimationFrame(() => scrollToId("sec-roles")); }
+}
+
+/* 목차 현재 위치 표시 */
+function updateSpy() {
+  const links = document.querySelectorAll(".side-toc a[data-sec]"); if (!links.length) return;
+  const off = headerH() + 40; let cur = links[0].dataset.sec;
+  links.forEach(a => { const el = document.getElementById(a.dataset.sec); if (el && el.getBoundingClientRect().top - off <= 0) cur = a.dataset.sec; });
+  links.forEach(a => a.classList.toggle("on", a.dataset.sec === cur));
+}
+window.addEventListener("scroll", updateSpy, { passive: true });
+function syncHeaderVar() { document.documentElement.style.setProperty("--hd", headerH() + "px"); }
+window.addEventListener("resize", syncHeaderVar);
+
+/* =====================================================================
+   화면 ④ 통합 셋업 로드맵
+   ===================================================================== */
+function pageRoadmap() {
+  $app.innerHTML =
+    '<section class="card"><h1>신규 현장 통합 셋업 로드맵</h1><div class="muted">' + esc(OVERVIEW.org) + '</div>' +
+    '<div class="btn-row noprint"><a class="btn" href="#/rnr">우리 현장 R&amp;R 작성</a><button class="btn ghost" data-print="1">인쇄</button></div></section>' +
+    '<section class="card"><h2>표준 일정' + src(F0, "§4") + '</h2><ul class="timeline">' +
+      OVERVIEW.roadmap.map(r => "<li><b>" + esc(r[0]) + "</b> " + esc(r[1]) + "</li>").join("") + "</ul></section>" +
+    '<section class="card"><h2>단계별 상세' + src(F0, "§4") + "</h2>" + tbl(["단계", "담당", "산출물", "비고"], OVERVIEW.phases) + "</section>" +
+    '<section class="card">' + lockedBox("필수 vs 선택 적용 기준", tbl(["시스템", "구분", "판단 기준"], OVERVIEW.mandatory), src(F0, "§5")) + "</section>" +
+    '<section class="card"><h2>시스템 간 연관 관계' + src(F0, "§2") + "</h2><ul>" + OVERVIEW.relations.map(r => "<li>" + esc(r.text) + "</li>").join("") + "<li>" + esc(OVERVIEW.commonBase) + "</li></ul></section>" +
+    '<section class="card"><h2>역할 정의 (공통)' + src(F0, "§3") + "</h2>" + tbl(["역할", "소속", "주요 책임"], OVERVIEW.commonRoles) + "</section>" +
+    '<section class="card"><h2>공통 문의처' + src(F0, "§6") + "</h2>" + tbl(["구분", "담당", "연락처", "운영시간"], OVERVIEW.contacts) + "</section>";
+}
+
+/* =====================================================================
+   화면 ⑤ 우리 현장 R&R  (3-3 기본값 생성 [규칙] / 담당자 입력·확정 [사람])
+   ===================================================================== */
+const RNR_KEY = "siteGuide.rnr.v1";
+function emptyRnr() {
+  return { site: { name: "", code: "", date: "" }, selected: ["common", "work", "attendance", "docs"], rows: {}, custom: [], seq: 0,
+    sign: { writer: "", writerDate: "", reviewer: "", reviewerDate: "", approver: "", approverDate: "", verified: false } };
+}
+let rnr = Object.assign(emptyRnr(), store(RNR_KEY) || {});
+function saveRnr() { store(RNR_KEY, rnr); }
+function rnrGroups() {
+  return [{ id: "common", name: "공통 (통합 셋업 단계)", file: F0, sec: "§4 단계별 상세",
+    roles: OVERVIEW.phases.map(p => ({ role: p[1], items: [p[0] + " — 산출물: " + p[2] + (p[3] ? " (" + p[3] + ")" : "")] })) }]
+    .concat(SYSTEMS.map(s => ({ id: s.id, name: s.no + ". " + s.name, file: s.file, sec: "§2", roles: s.roles })));
+}
+function rowState(key) { return rnr.rows[key] || (rnr.rows[key] = { owner: "", contact: "", done: false, note: "", deleted: false, reason: "" }); }
+function groupStats(g) {
+  let total = 0, done = 0;
+  g.roles.forEach((r, ri) => r.items.forEach((_, ii) => { const st = rnr.rows[g.id + "|" + ri + "|" + ii]; if (!(st && st.deleted)) { total++; if (st && st.done) done++; } }));
+  rnr.custom.filter(c => c.sys === g.id).forEach(c => { total++; if (c.done) done++; });
+  return { total: total, done: done };
+}
+function pageRnr(pre) {
+  if (pre && byId(pre) && rnr.selected.indexOf(pre) < 0) { rnr.selected.push(pre); saveRnr(); }
+  const groups = rnrGroups();
+  let h = '<section class="card"><h1>우리 현장 R&amp;R</h1>' +
+    '<div class="muted small">기준 문서의 역할별 준비사항이 기본값으로 들어가 있어요. 담당자와 연락처는 현장에서 직접 입력하세요. 기준 항목을 삭제할 때는 사유를 입력해야 해요. 입력값은 이 브라우저에 자동 저장돼요.</div>' +
+    '<div class="three" style="margin-top:10px">' +
+      '<div><label class="fld">현장명</label><input type="text" data-site="name" value="' + esc(rnr.site.name) + '" placeholder="예) OO 신축공사"></div>' +
+      '<div><label class="fld">현장 코드</label><input type="text" data-site="code" value="' + esc(rnr.site.code) + '" placeholder="시스템운영팀 발급 코드"></div>' +
+      '<div><label class="fld">작성일</label><input type="date" data-site="date" value="' + esc(rnr.site.date) + '"></div>' +
+    "</div>" +
+    '<div class="noprint"><label class="fld">적용할 시스템 선택</label><div class="sysselect">' +
+      groups.map(g => {
+        const s = byId(g.id);
+        return '<label><input type="checkbox" data-sel="' + g.id + '"' + (rnr.selected.indexOf(g.id) >= 0 ? " checked" : "") + "> " + esc(g.name) + (s ? " " + catBadge(s.category) : "") + "</label>";
+      }).join("") +
+    '</div><p class="small muted">필수/조건부 필수 기준은 <a href="#/roadmap">통합 셋업 로드맵</a>을 확인하세요.' + src(F0, "§5") + "</p></div>" +
+    '<div class="btn-row noprint"><button class="btn" data-print="1">인쇄 / PDF 저장</button><button class="btn ghost" id="rnrExport">JSON 내보내기</button>' +
+    '<button class="btn ghost" id="rnrImportBtn">JSON 불러오기</button>' +
+    '<button class="btn danger" id="rnrReset">전체 초기화</button></div></section>';
+
+  h += '<section class="card"><h2>담당자별 R&amp;R 표</h2><div id="rnrSummary" class="small"></div>' +
+    '<table class="rnr-table"><thead><tr><th style="width:15%">역할 (기준)</th><th>준비 항목</th><th style="width:12%">담당자</th><th style="width:13%">연락처</th><th style="width:5%">완료</th><th style="width:14%">비고</th><th class="noprint" style="width:64px"></th></tr></thead><tbody id="rnrBody">';
+  groups.filter(g => rnr.selected.indexOf(g.id) >= 0).forEach(g => {
+    h += '<tr class="grp"><td colspan="7">' + esc(g.name) + src(g.file, g.sec) + ' <span class="badge b-brand" data-stat="' + g.id + '"></span></td></tr>';
+    g.roles.forEach((r, ri) => r.items.forEach((item, ii) => {
+      const key = g.id + "|" + ri + "|" + ii; const st = rowState(key);
+      h += rowHtml(key, r.role, item, st, false);
+    }));
+    rnr.custom.filter(c => c.sys === g.id).forEach(c => { h += rowHtml("c:" + c.id, c.role, c.item, c, true); });
+    h += '<tr class="noprint"><td><input type="text" list="roles-' + g.id + '" data-addrole="' + g.id + '" placeholder="역할"></td>' +
+      '<td colspan="5"><input type="text" data-additem="' + g.id + '" placeholder="현장에서 추가할 준비 항목을 입력하세요"></td>' +
+      '<td><button class="btn sm ghost" data-add="' + g.id + '">추가</button></td></tr>' +
+      '<datalist id="roles-' + g.id + '">' + Array.from(new Set(g.roles.map(r => r.role))).map(r => '<option value="' + esc(r) + '">').join("") + "</datalist>";
+  });
+  if (!rnr.selected.length) h += '<tr><td colspan="7" class="muted">적용할 시스템을 선택하세요.</td></tr>';
+  h += "</tbody></table></section>";
+
+  const sg = rnr.sign;
+  h += '<section class="card"><h2>확인 및 승인</h2><div class="sign">' +
+    signBox("작성자 (현장 시스템 담당자)", "writer", sg) + signBox("검토자", "reviewer", sg) + signBox("승인자 (현장소장)", "approver", sg) +
+    '</div><label style="display:block;margin-top:10px;font-size:14px"><input type="checkbox" data-sign="verified"' + (sg.verified ? " checked" : "") + "> 승인자가 기준 문서 원본(더미자료 md)과 대조했음을 확인함</label>" +
+    '<p class="small muted">이 표는 자동으로 전송되지 않아요. 인쇄하거나 PDF·JSON으로 저장해서 직접 공유하세요.</p></section>';
+  $app.innerHTML = h;
+  updateRnrStats();
+  bindRnr();
+}
+function rowHtml(key, role, item, st, custom) {
+  const dis = st.deleted ? " disabled" : "";
+  return '<tr data-key="' + esc(key) + '"' + (st.deleted ? ' class="deleted"' : "") + ">" +
+    "<td>" + esc(role) + "</td>" +
+    "<td>" + esc(item) + (custom ? ' <span class="badge b-gray">현장 추가</span>' : "") + (st.deleted ? '<span class="reason">삭제 사유: ' + esc(st.reason) + "</span>" : "") + "</td>" +
+    '<td class="keep"><input type="text" data-f="owner" value="' + esc(st.owner) + '"' + dis + "></td>" +
+    '<td class="keep"><input type="text" data-f="contact" value="' + esc(st.contact) + '"' + dis + "></td>" +
+    '<td class="keep c"><input type="checkbox" data-f="done"' + (st.done ? " checked" : "") + dis + "></td>" +
+    '<td class="keep"><input type="text" data-f="note" value="' + esc(st.note) + '"' + dis + "></td>" +
+    '<td class="keep noprint">' + (st.deleted ? '<button class="btn sm ghost" data-act="restore">복원</button>' : '<button class="btn sm danger" data-act="del">삭제</button>') + "</td></tr>";
+}
+function signBox(label, k, sg) {
+  return '<div class="box"><div class="small" style="font-weight:600">' + esc(label) + "</div>" +
+    '<input type="text" data-sign="' + k + '" value="' + esc(sg[k]) + '" placeholder="성명" style="margin-top:6px">' +
+    '<input type="date" data-sign="' + k + 'Date" value="' + esc(sg[k + "Date"]) + '" style="margin-top:6px">' +
+    '<div class="stamp">서명</div></div>';
+}
+function getRowObj(key) {
+  if (key.indexOf("c:") === 0) return rnr.custom.find(c => "c:" + c.id === key);
+  return rowState(key);
+}
+function updateRnrStats() {
+  let T = 0, D = 0;
+  rnrGroups().filter(g => rnr.selected.indexOf(g.id) >= 0).forEach(g => {
+    const st = groupStats(g); T += st.total; D += st.done;
+    const el = $app.querySelector('[data-stat="' + g.id + '"]'); if (el) el.textContent = "완료 " + st.done + " / " + st.total;
+  });
+  let assigned = 0, all = 0;
+  rnrGroups().filter(g => rnr.selected.indexOf(g.id) >= 0).forEach(g => {
+    g.roles.forEach((r, ri) => r.items.forEach((_, ii) => { const s = rnr.rows[g.id + "|" + ri + "|" + ii]; if (!(s && s.deleted)) { all++; if (s && s.owner.trim()) assigned++; } }));
+    rnr.custom.filter(c => c.sys === g.id).forEach(c => { all++; if (c.owner.trim()) assigned++; });
+  });
+  const sum = document.getElementById("rnrSummary");
+  if (sum) sum.innerHTML = "선택한 시스템 전체: 담당자 지정 <strong>" + assigned + " / " + all + "</strong> · 완료 <strong>" + D + " / " + T + "</strong>";
+}
+function bindRnr() {
+  $app.querySelectorAll("[data-site]").forEach(i => i.addEventListener("input", () => { rnr.site[i.dataset.site] = i.value; saveRnr(); }));
+  $app.querySelectorAll("[data-sel]").forEach(i => i.addEventListener("change", () => {
+    const id = i.dataset.sel;
+    if (i.checked) { if (rnr.selected.indexOf(id) < 0) rnr.selected.push(id); } else rnr.selected = rnr.selected.filter(x => x !== id);
+    const order = rnrGroups().map(g => g.id); rnr.selected.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    saveRnr(); pageRnr();
+  }));
+  $app.querySelectorAll("[data-sign]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => {
+    rnr.sign[i.dataset.sign] = i.type === "checkbox" ? i.checked : i.value; saveRnr();
+  }));
+  const body = document.getElementById("rnrBody");
+  body.addEventListener("input", e => {
+    const tr = e.target.closest("tr[data-key]"); if (!tr || !e.target.dataset.f) return;
+    const o = getRowObj(tr.dataset.key); if (!o) return;
+    o[e.target.dataset.f] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    saveRnr(); updateRnrStats();
+  });
+  body.addEventListener("change", e => {
+    if (e.target.type !== "checkbox") return;
+    const tr = e.target.closest("tr[data-key]"); if (!tr) return;
+    const o = getRowObj(tr.dataset.key); if (!o) return;
+    o.done = e.target.checked; saveRnr(); updateRnrStats();
+  });
+  body.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.add) {
+      const g = b.dataset.add;
+      const role = $app.querySelector('[data-addrole="' + g + '"]').value.trim();
+      const item = $app.querySelector('[data-additem="' + g + '"]').value.trim();
+      if (!role || !item) { toast("역할과 준비 항목을 모두 입력하세요"); return; }
+      rnr.seq = (rnr.seq || 0) + 1;
+      rnr.custom.push({ id: rnr.seq, sys: g, role: role, item: item, owner: "", contact: "", done: false, note: "", deleted: false, reason: "" });
+      saveRnr(); pageRnr(); toast("현장 항목을 추가했어요"); return;
+    }
+    const tr = b.closest("tr[data-key]"); if (!tr) return;
+    const key = tr.dataset.key;
+    if (b.dataset.act === "del") {
+      if (key.indexOf("c:") === 0) {
+        askConfirm("현장 추가 항목 삭제", "현장에서 추가한 항목을 삭제할까요?", "삭제", () => {
+          rnr.custom = rnr.custom.filter(c => "c:" + c.id !== key); saveRnr(); pageRnr();
+        });
+      } else {
+        askText("기준 항목 삭제", "기준 문서의 항목이에요. 삭제하는 사유를 입력하세요. (필수)", "예) 이 현장은 게이트 대신 태블릿 체크 방식 사용", "삭제", reason => {
+          const st = rowState(key); st.deleted = true; st.reason = reason; saveRnr(); pageRnr(); toast("사유와 함께 삭제 처리했어요");
+        });
+      }
+      return;
+    }
+    if (b.dataset.act === "restore") { const st = getRowObj(key); st.deleted = false; st.reason = ""; saveRnr(); pageRnr(); }
+  });
+  document.getElementById("rnrExport").onclick = () => {
+    const name = "R&R_" + (rnr.site.code || rnr.site.name || "현장").replace(/[\\/:*?"<>|\s]/g, "_") + ".json";
+    const text = JSON.stringify({ type: "siteGuide.rnr", version: 1, data: rnr }, null, 2);
+    let saved = true;
+    try { download(name, text); } catch (e) { saved = false; }
+    // 다운로드가 막힌 환경(앱 내장 브라우저 등)에서도 쓸 수 있도록 내용을 함께 보여줌
+    openModal({ title: "JSON 내보내기", okText: "닫기", cancelText: "",
+      body: '<p class="small">' + (saved ? "파일 저장을 시도했어요(" + esc(name) + "). " : "") + "파일이 저장되지 않았다면 아래 내용을 복사해서 보관하세요.</p>" +
+        '<textarea id="mText" rows="10" readonly style="font-family:Consolas,monospace;font-size:12px">' + esc(text) + "</textarea>" +
+        '<div class="btn-row"><button class="btn ghost sm" id="mCopy">전체 복사</button></div>',
+      onOpen: () => { document.getElementById("mCopy").onclick = () => { copyText(document.getElementById("mText")); }; } });
+  };
+  document.getElementById("rnrImportBtn").onclick = () => {
+    openModal({ title: "JSON 불러오기", okText: "불러오기", cancelText: "취소",
+      body: '<p class="small">내보낸 JSON 파일을 선택하거나, 복사해 둔 내용을 붙여넣으세요. 지금 입력된 내용은 불러온 내용으로 바뀌어요.</p>' +
+        '<input type="file" id="mFile" accept=".json,application/json" style="margin-bottom:8px">' +
+        '<textarea id="mText" rows="8" placeholder="여기에 JSON 내용 붙여넣기" style="font-family:Consolas,monospace;font-size:12px"></textarea>',
+      onOpen: () => {
+        document.getElementById("mFile").onchange = e => {
+          const f = e.target.files[0]; if (!f) return;
+          const rd = new FileReader(); rd.onload = () => { document.getElementById("mText").value = rd.result; }; rd.readAsText(f, "utf-8");
+        };
+      },
+      onOk: () => {
+        try {
+          const j = JSON.parse(document.getElementById("mText").value);
+          if (j.type !== "siteGuide.rnr" || !j.data || !j.data.rows) throw new Error("형식 오류");
+          rnr = Object.assign(emptyRnr(), j.data); saveRnr(); pageRnr(); toast("불러왔어요"); return true;
+        } catch (err) { return "R&R JSON 형식이 아니에요. 내보내기로 만든 내용인지 확인하세요."; }
+      } });
+  };
+  document.getElementById("rnrReset").onclick = () => askConfirm("전체 초기화", "입력한 R&R 내용을 모두 지울까요? 되돌릴 수 없어요.", "모두 지우기", () => { rnr = emptyRnr(); saveRnr(); pageRnr(); toast("초기화했어요"); });
+}
+
+/* =====================================================================
+   화면 ⑥ 구축 요청 계획서 (3-2 초안 [AI 판단 대체 로직] / 제출 [사람])
+   ===================================================================== */
+const REQ_KEY = "siteGuide.request.v1";
+const REQ_USERS = ["현장소장", "현장 시스템 담당자 (공무팀)", "공종/분야 담당자", "안전 담당자", "품질 담당자", "자재 담당자", "협력업체 현장대리인", "자재 제작사/공급사", "정문 경비/게이트 운영자", "감리단 / 발주처"];
+function emptyReq() { return { site: "", code: "", requester: "", dept: "", contact: "", need: "", current: "", problem: "", features: "", users: [], usersEtc: "", links: [], effect: "", schedule: "", drafted: false }; }
+let req = Object.assign(emptyReq(), store(REQ_KEY) || {});
+function saveReq() { store(REQ_KEY, req); }
+function pageRequest() {
+  const f = (k, label, ph, rows) => '<label class="fld">' + label + "</label>" + (rows
+    ? '<textarea data-r="' + k + '" rows="' + rows + '" placeholder="' + esc(ph) + '">' + esc(req[k]) + "</textarea>"
+    : '<input type="text" data-r="' + k + '" value="' + esc(req[k]) + '" placeholder="' + esc(ph) + '">');
+  $app.innerHTML =
+    '<section class="card noprint"><h1>시스템 구축 요청 계획서</h1>' +
+    '<div class="muted small">기존 5개 시스템으로 해결되지 않는 업무를 정리해요. 입력한 내용으로 계획서 초안을 만들고, 현장소장 확인 후 <strong>직접</strong> 시스템운영팀에 제출하세요. 자동으로 전송되지 않아요.</div>' +
+    '<div class="three">' + f("site", "요청 현장명", "예) OO 신축공사") + f("code", "현장 코드", "") + f("requester", "요청자", "성명") + "</div>" +
+    '<div class="two">' + f("dept", "소속/직책", "예) 공무팀 대리") + f("contact", "연락처", "") + "</div>" +
+    f("need", "요청 업무 (하고 싶은 일)", "예) 현장 식당 식권을 근로자별로 관리하고 싶어요", 2) +
+    '<div class="two">' + f("current", "현재 업무 방식", "지금은 어떻게 하고 있나요?", 3) + f("problem", "문제점", "무엇이 불편하거나 비효율적인가요?", 3) + "</div>" +
+    f("features", "필요 기능 (한 줄에 하나씩)", "예) 근로자별 식권 발급 이력 조회\n예) 업체별 월 사용량 집계", 4) +
+    '<label class="fld">주 사용자</label><div class="sysselect">' + REQ_USERS.map(u => '<label><input type="checkbox" data-ru="' + esc(u) + '"' + (req.users.indexOf(u) >= 0 ? " checked" : "") + "> " + esc(u) + "</label>").join("") + "</div>" +
+    f("usersEtc", "기타 사용자", "") +
+    '<label class="fld">연계 희망 시스템</label><div class="sysselect">' + SYSTEMS.map(s => '<label><input type="checkbox" data-rl="' + s.id + '"' + (req.links.indexOf(s.id) >= 0 ? " checked" : "") + "> " + esc(s.name) + "</label>").join("") + "</div>" +
+    '<div class="two">' + f("effect", "기대 효과", "", 3) + f("schedule", "희망 적용 일정", "비워 두면 '미확인'으로 표시돼요", 3) + "</div>" +
+    '<div class="btn-row"><button class="btn" id="mkDraft">계획서 초안 만들기</button><button class="btn danger" id="reqReset">입력 초기화</button></div></section>' +
+    '<div id="draft"></div>';
+  $app.querySelectorAll("[data-r]").forEach(i => i.addEventListener("input", () => { req[i.dataset.r] = i.value; saveReq(); }));
+  $app.querySelectorAll("[data-ru]").forEach(i => i.addEventListener("change", () => { const u = i.dataset.ru; req.users = i.checked ? req.users.concat([u]) : req.users.filter(x => x !== u); saveReq(); }));
+  $app.querySelectorAll("[data-rl]").forEach(i => i.addEventListener("change", () => { const u = i.dataset.rl; req.links = i.checked ? req.links.concat([u]) : req.links.filter(x => x !== u); saveReq(); }));
+  document.getElementById("mkDraft").onclick = () => {
+    if (!req.need.trim()) { toast("요청 업무를 입력하세요"); return; }
+    req.drafted = true; saveReq(); renderDraft(); scrollToId("draft");
+  };
+  document.getElementById("reqReset").onclick = () => askConfirm("입력 초기화", "구축 요청 계획서 입력 내용을 모두 지울까요?", "모두 지우기", () => { req = emptyReq(); saveReq(); pageRequest(); toast("초기화했어요"); });
+  if (req.drafted) renderDraft();
+}
+function renderDraft() {
+  const v = (s, empty) => s && String(s).trim() ? esc(s).replace(/\n/g, "<br>") : '<span class="muted">' + (empty || "(미입력)") + "</span>";
+  const feats = req.features.split("\n").map(x => x.trim()).filter(Boolean);
+  const users = req.users.concat(req.usersEtc.trim() ? [req.usersEtc.trim()] : []);
+  const m = matchSystems(req.need + "\n" + req.features);
+  const review = m.length
+    ? "<p class='small'>요청 내용과 일부 대응되는 기존 기능이 있어요. 기존 시스템 개선으로 해결할 수 있는지 시스템운영팀 검토가 필요해요.</p><ul>" +
+      m.map(r => "<li><strong>" + esc(r.sys.name) + "</strong> (" + r.verdict + ") — " + r.hits.map(h => esc(h.feature)).join(", ") + src(r.sys.file, r.sys.featuresSec) + "</li>").join("") + "</ul>"
+    : "<p class='small'>기준 문서의 5개 시스템에서 대응되는 기능을 찾지 못했어요.</p>";
+  document.getElementById("draft").innerHTML =
+    '<section class="card"><div class="noprint" style="margin-bottom:10px"><span class="ai-note">초안 구성: 입력값을 항목별로 배치하고 기존 시스템과 대조했어요 (AI 판단 대체 로직). 내용 확정은 사람이 해요.</span>' +
+    '<div class="btn-row"><button class="btn" data-print="1">인쇄 / PDF 저장</button></div></div>' +
+    '<div class="doc"><h1>시스템 구축 요청 계획서</h1>' +
+    "<h3>1. 요청 개요</h3><table>" +
+      "<tr><th>요청 현장</th><td>" + v(req.site) + "</td><th>현장 코드</th><td>" + v(req.code) + "</td></tr>" +
+      "<tr><th>요청자</th><td>" + v(req.requester) + "</td><th>소속/직책</th><td>" + v(req.dept) + "</td></tr>" +
+      "<tr><th>연락처</th><td colspan='3'>" + v(req.contact) + "</td></tr></table>" +
+    "<h3>2. 요청 배경 (요청 업무)</h3><p>" + v(req.need) + "</p>" +
+    "<h3>3. 현재 업무 방식과 문제점</h3><table><tr><th>현재 방식</th><td>" + v(req.current) + "</td></tr><tr><th>문제점</th><td>" + v(req.problem) + "</td></tr></table>" +
+    "<h3>4. 필요 기능</h3>" + (feats.length ? "<ol>" + feats.map(x => "<li>" + esc(x) + "</li>").join("") + "</ol>" : "<p>" + v("") + "</p>") +
+    "<h3>5. 기존 시스템 검토 결과 (에이전트 대조 · 사람 확인 필요)</h3>" + review +
+    "<h3>6. 주 사용자</h3><p>" + (users.length ? esc(users.join(", ")) : v("")) + "</p>" +
+    "<h3>7. 연계 희망 시스템</h3><p>" + (req.links.length ? esc(req.links.map(id => byId(id).name).join(", ")) : v("")) + "</p>" +
+    "<h3>8. 기대 효과</h3><p>" + v(req.effect) + "</p>" +
+    "<h3>9. 희망 적용 일정</h3><p>" + v(req.schedule, "미확인") + "</p>" +
+    "<h3>10. 확인 및 접수</h3>" +
+    '<div class="sign"><div class="box"><div class="small" style="font-weight:600">요청자</div><div class="small">성명: ' + v(req.requester) + '</div><div class="stamp">서명</div></div>' +
+    '<div class="box"><div class="small" style="font-weight:600">현장소장 확인</div><div class="small">일자:</div><div class="stamp">서명</div></div>' +
+    '<div class="box"><div class="small" style="font-weight:600">사업부 시스템운영팀 접수</div><div class="small">접수일:</div>' +
+    '<div class="small">검토 결과: □ 기존 시스템 개선 □ 신규 구축 □ 반려</div><div class="stamp">서명</div></div></div>' +
+    '<p class="small muted" style="margin-top:10px">이 계획서는 자동으로 전송되지 않아요. 현장소장 확인 후 요청자가 직접 시스템운영팀에 제출하세요. (문의: ' + esc(OVERVIEW.contacts[0][1] + " " + OVERVIEW.contacts[0][2]) + ")" + src(F0, "§6") + "</p></div></section>";
+}
+
+/* =====================================================================
+   라우터
+   ===================================================================== */
+function route() {
+  const parts = (location.hash || "#/home").replace(/^#\//, "").split("/");
+  const page = parts[0] || "home", arg = parts[1], arg2 = parts[2];
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("active", a.dataset.p === page || (page === "sys" && a.dataset.p === "systems")));
+  window.scrollTo(0, 0);
+  syncHeaderVar();
+  if (page === "systems") pageSystems();
+  else if (page === "sys") pageSystem(arg, arg2);
+  else if (page === "roadmap") pageRoadmap();
+  else if (page === "rnr") pageRnr(arg);
+  else if (page === "request") pageRequest();
+  else pageHome();
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
