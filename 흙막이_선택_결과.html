@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>굴착깊이·지하수위에 따른 흙막이 공법 선택 결과</title>
+<style>
+.viz-root{color-scheme:light;--surface:#fcfcfb;--page:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--crit:#d03b3b;--warn:#b7791f;--ok:#006300;--none:#e7e5de}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{color-scheme:dark;--surface:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--crit:#e66767;--warn:#fab219;--ok:#0ca30c;--none:#2c2c2a}}
+*{box-sizing:border-box}body{margin:0;background:var(--page)}
+.viz-root{font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;color:var(--ink);line-height:1.5;min-height:100vh}
+.banner{background:var(--crit);color:#fff;text-align:center;padding:8px 12px;font-size:14px;font-weight:600}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:4px 0 2px}.sub{color:var(--ink2);font-size:14px;margin:0 0 14px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:16px 18px;margin:14px 0}
+h2{font-size:16px;margin:0 0 4px}.hint{font-size:12.5px;color:var(--ink2);margin:0 0 8px}
+.ctl{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end}
+.ctl label.t{display:block;font-size:13px;color:var(--ink2);margin-bottom:4px}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;padding:6px 12px;border:0;background:var(--surface);color:var(--ink);cursor:pointer;border-right:1px solid var(--axis)}
+.seg button:last-child{border-right:0}.seg button[aria-pressed=true]{background:var(--s1);color:#fff;font-weight:600}
+.ctl input[type=number]{font:inherit;font-size:15px;width:90px;text-align:right;color:var(--ink);background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:6px 8px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;margin:8px 0 6px}.legend span{display:inline-flex;align-items:center;gap:7px}.legend i{width:14px;height:10px;border-radius:2px;display:inline-block}
+svg{display:block;width:100%;height:auto}svg text{fill:var(--ink);font-family:inherit}svg .tm{fill:var(--muted)}svg .t2{fill:var(--ink2)}
+svg:focus{outline:2px solid var(--s1);outline-offset:2px;border-radius:4px}
+.cols{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.pick .eyebrow{font-size:13px;color:var(--ink2)}.pick .big{font-size:44px;font-weight:700;line-height:1.1;margin:2px 0 6px}.pick .big.none{font-size:26px;color:var(--crit)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{border-bottom:1px solid var(--grid);padding:6px 6px;text-align:right;vertical-align:top}
+th{color:var(--ink2);font-weight:600;font-size:12.5px;white-space:nowrap}th:first-child,td:first-child,.l{text-align:left}td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px}
+.runs td{text-align:left}.run{display:inline-flex;align-items:center;gap:6px;margin:2px 10px 2px 0;font-size:13px;white-space:nowrap}.run i{width:10px;height:10px;border-radius:2px}
+.tag{display:inline-block;font-size:12px;border-radius:10px;padding:0 8px;border:1px solid var(--axis);color:var(--ink2);white-space:nowrap}
+.tag.warn{border-color:var(--warn);color:var(--warn)}.tag.bad{border-color:var(--crit);color:var(--crit)}.tag.ok{border-color:var(--ok);color:var(--ok);font-weight:600}
+.note{font-size:13px;color:var(--ink2)}.note li{margin:3px 0}
+.tip{position:fixed;z-index:10;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:8px;padding:6px 9px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.18);display:none}
+.x-scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="banner">가상 단가·규칙 기반 초기 검토 결과입니다. 실제 설계·견적이 아니며 기술자 검토가 필요합니다.</div>
+<div class="wrap">
+ <h1>굴착깊이·지하수위에 따른 흙막이 공법 선택 결과</h1>
+ <p class="sub">깊이와 지하수위의 조합마다 규칙이 권장하는 흙막이 벽체 공법을 한 장에 표시했습니다. 칸을 누르면 그 조건의 공사비·공기 비교가 오른쪽에 나옵니다.</p>
+
+ <div class="card"><div class="ctl">
+  <div><span class="t" style="display:block;font-size:13px;color:var(--ink2);margin-bottom:4px">인접 조건</span>
+   <div class="seg" id="nbSeg" role="group" aria-label="인접 조건">
+    <button data-nb="low" aria-pressed="true">영향 적음 · 나대지 20m</button>
+    <button data-nb="mid" aria-pressed="false">보통 · 저층건물 5m</button>
+    <button data-nb="high" aria-pressed="false">민감 · 고층건물 2m</button></div></div>
+  <div><label class="t" for="perim" style="display:block;font-size:13px;color:var(--ink2);margin-bottom:4px">굴착 둘레 (m)</label><input id="perim" type="number" min="40" max="1200" step="10" value="200"></div>
+ </div></div>
+
+ <div class="cols">
+  <div class="card">
+   <h2>선택 지도 (권장 공법)</h2>
+   <p class="hint">가로 = 굴착깊이, 세로 = 지하수위(GL-m, 아래로 갈수록 깊음). 점선 위쪽(지하수위 &lt; 굴착깊이)은 지하수위가 굴착면보다 위입니다. 방향키로 칸을 옮길 수 있습니다.</p>
+   <div class="legend" id="legend"></div>
+   <div id="map"></div>
+  </div>
+  <div class="card pick" id="pick"></div>
+ </div>
+
+ <div class="card">
+  <h2>지하수위별 선택 구간 요약</h2>
+  <p class="hint">같은 내용을 표로 정리했습니다. 각 지하수위에서 굴착깊이가 깊어질 때 권장 공법이 바뀌는 구간입니다.</p>
+  <div class="x-scroll"><table class="runs" id="runs"></table></div>
+ </div>
+
+ <div class="card"><h2>읽는 법과 한계</h2><ul class="note" id="notes"></ul></div>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+</div>
+<script>
+const P = {"WALL": {"H-Pile": [180000, 150, [0, 12], 1], "CIP": [400000, 70, [4, 16], 2], "SCW": [520000, 80, [6, 22], 3], "D-Wall": [1100000, 35, [8, 45], 4]}, "GROUT": 90000, "SUPPORT": {"자립식": 0, "레이커": 60000, "어스앵커": 85000, "버팀보(Strut)": 130000}, "SUPPORT_DAYS_PER_STAGE": 5, "STAGE_H": 3.5, "FIXED_DAYS": 20, "EMBED_RATIO": [0.2, 0.4], "SENSITIVE_TYPES": ["지하철/터널", "문화재", "고층건물"]};
+const NB = {low:{type:'나대지',dist:20}, mid:{type:'저층건물',dist:5}, high:{type:'고층건물',dist:2}};
+const COLORS = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)'];   // 고정 순서: 공법에 색이 붙는다(순위가 아님)
+const NAMES = Object.keys(P.WALL);
+
+// ---- 규칙 (advisor/rules.py 와 동일) ----
+const isSensitive = (type, dist) => dist < 3 || P.SENSITIVE_TYPES.includes(type);
+function ruleWall(depth, gw, dist, type){
+  const water = gw < depth, sens = isSensitive(type, dist);
+  if (depth >= 18 || (sens && depth >= 12) || (water && depth >= 14)) return 'D-Wall';
+  if (water && depth >= 6) return 'SCW';
+  if ((sens && depth >= 4) || depth > 10 || water) return 'CIP';
+  return 'H-Pile';
+}
+function ruleSupport(depth, dist, type){
+  if (depth <= 3) return '자립식';
+  if (dist < 2 || type === '지하철/터널' || depth >= 14) return '버팀보(Strut)';
+  if (depth <= 8 && dist >= 8) return '레이커';
+  return '어스앵커';
+}
+function infeasible(wall, depth, gw){
+  const [lo, hi] = P.WALL[wall][2], r = [];
+  if (depth < lo || depth > hi) r.push('적용깊이(' + lo + '~' + hi + 'm) 벗어남');
+  if (wall === 'H-Pile' && gw < depth) r.push('지하수위가 굴착면 위(차수 불가)');
+  return r;
+}
+// ---- 공사비·공기 (advisor/estimate.py 와 동일) ----
+function costDays(wall, support, depth, embed, perim, gw){
+  const [unit0, rate] = P.WALL[wall];
+  let unit = unit0; const area = perim * (depth + embed);
+  if (wall === 'CIP' && gw < depth) unit += P.GROUT;
+  const cost = area * (unit + (P.SUPPORT[support] ?? 85000)) / 1e6;
+  const rigs = Math.min(4, 1 + Math.floor(perim / 100));
+  const stages = support === '자립식' ? 0 : Math.max(1, Math.ceil(depth / P.STAGE_H) - 1);
+  return [cost, P.FIXED_DAYS + area / (rate * rigs) + stages * P.SUPPORT_DAYS_PER_STAGE];
+}
+function calc(depth, gw, perim, nbKey){
+  const nb = NB[nbKey], base = ruleWall(depth, gw, nb.dist, nb.type), need = P.WALL[base][3];
+  const support = ruleSupport(depth, nb.dist, nb.type);
+  const rows = NAMES.map(w => {
+    const reasons = infeasible(w, depth, gw);
+    const tier = P.WALL[w][3];
+    const vals = P.EMBED_RATIO.map(r => costDays(w, support, depth, depth * r, perim, gw));
+    const cs = vals.map(v => v[0]), ds = vals.map(v => v[1]);
+    const mid = P.EMBED_RATIO.length ? costDays(w, support, depth, depth * 0.3, perim, gw) : null;
+    return {wall: w, reasons, tier, belowTier: tier < need,
+      eligible: reasons.length === 0 && tier >= need,
+      cost: mid[0], cmin: Math.min(...cs), cmax: Math.max(...cs),
+      days: mid[1], dmin: Math.min(...ds), dmax: Math.max(...ds),
+      rankDays: (ds[0] + ds[1]) / 2, rankCost: (cs[0] + cs[1]) / 2};
+  });
+  const el = rows.filter(r => r.eligible).sort((a, b) => (Math.round(a.rankDays) - Math.round(b.rankDays)) || (a.rankCost - b.rankCost));
+  el.forEach((r, i) => r.rank = i + 1);
+  return {rows, base, need, support, nb, depth, gw, perim, eligible: el,
+    cheapest: el.length ? el.reduce((a, b) => a.rankCost <= b.rankCost ? a : b) : null,
+    fastest: el.length ? el.reduce((a, b) => a.rankDays <= b.rankDays ? a : b) : null};
+}
+
+
+// ---- 선택 지도 ----
+const $ = id => document.getElementById(id);
+const DEPTHS = Array.from({length: 39}, (_, i) => i + 2), GWS = Array.from({length: 16}, (_, i) => i * 2);
+const SVGNS = 'http://www.w3.org/2000/svg';
+const SHORT = {'H-Pile': 'H', 'CIP': 'C', 'SCW': 'S', 'D-Wall': 'D'};
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const rng = (a, b) => (Math.round(a) === Math.round(b)) ? fmt(a) : fmt(a) + ' ~ ' + fmt(b);
+const st = {nb: 'low', perim: 200, di: 10, gi: 3};           // 선택 칸(깊이 12m, 지하수위 6m)
+let G = [];
+function el(tag, attrs, text){ const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+const recOf = R => R.eligible.length ? R.eligible[0].wall : null;
+
+function compute(){ G = GWS.map(g => DEPTHS.map(d => calc(d, g, st.perim, st.nb))); }
+
+function renderLegend(){
+  const lg = $('legend'); lg.textContent = '';
+  NAMES.forEach((n, i) => { const s = document.createElement('span'), k = document.createElement('i'); k.style.background = COLORS[i]; s.append(k, document.createTextNode(n)); lg.append(s); });
+  const s = document.createElement('span'), k = document.createElement('i'); k.style.background = 'var(--none)'; k.style.border = '1px solid var(--axis)'; s.append(k, document.createTextNode('후보 없음')); lg.append(s);
+}
+
+function renderMap(){
+  const host = $('map'), W = Math.max(340, Math.floor(host.clientWidth || 640)), L = 40, T = 8, B = 44, R = 8;
+  const cw = (W - L - R) / DEPTHS.length, ch = 22, H = T + ch * GWS.length + B;
+  const x = d => L + (d - 2) * cw, y = g => T + (g / 2) * ch;
+  const svg = el('svg', {viewBox: '0 0 ' + W + ' ' + H, tabindex: 0, role: 'application', 'aria-label': '굴착깊이와 지하수위에 따른 권장 공법 지도. 방향키로 칸을 선택합니다.'});
+  GWS.forEach((g, gi) => DEPTHS.forEach((d, di) => {
+    const w = recOf(G[gi][di]), idx = w ? NAMES.indexOf(w) : -1;
+    svg.append(el('rect', {x: x(d) + 1, y: y(g) + 1, width: Math.max(1, cw - 2), height: ch - 2, rx: 3, fill: idx >= 0 ? COLORS[idx] : 'var(--none)', 'data-gi': gi, 'data-di': di}));
+    if (cw >= 15) svg.append(el('text', {x: x(d) + cw / 2, y: y(g) + ch / 2 + 4, 'font-size': 11, 'text-anchor': 'middle', 'pointer-events': 'none', fill: '#fff', style: 'fill:' + (idx === 3 ? '#0b0b0b' : '#fff') + ';font-weight:600'}, idx >= 0 ? SHORT[w] : '–'));
+  }));
+  // 지하수위 = 굴착깊이 경계선 (지하수위 2~30m 구간)
+  svg.append(el('line', {x1: x(2), y1: y(2) , x2: x(30) + cw, y2: y(30) + ch, stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-dasharray': '6 4', 'pointer-events': 'none'}));
+  svg.append(el('text', {x: x(29) , y: y(29) + ch - 4, 'text-anchor': 'end', 'font-size': 12, class: 't2', 'pointer-events': 'none', style: 'paint-order:stroke;stroke:var(--surface);stroke-width:4px;font-weight:600'}, '지하수위 = 굴착깊이'));
+  GWS.forEach(g => { if (g % 4 === 0) svg.append(el('text', {x: L - 6, y: y(g) + ch / 2 + 4, 'font-size': 12, 'text-anchor': 'end', class: 'tm'}, 'GL-' + g)); });
+  DEPTHS.forEach(d => { if (d % 4 === 2) svg.append(el('text', {x: x(d) + cw / 2, y: T + ch * GWS.length + 16, 'font-size': 12, 'text-anchor': 'middle', class: 'tm'}, d)); });
+  svg.append(el('text', {x: L + (W - L - R) / 2, y: H - 6, 'font-size': 13, 'text-anchor': 'middle', class: 't2'}, '굴착깊이 (m)'));
+  svg.append(el('rect', {id: 'sel', x: x(DEPTHS[st.di]), y: y(GWS[st.gi]), width: cw, height: ch, rx: 3, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2.5, 'pointer-events': 'none'}));
+  svg._geo = {x, y, cw, ch};
+  svg.addEventListener('pointermove', e => { const t = e.target; if (t.dataset && t.dataset.gi != null) showTip(e, +t.dataset.gi, +t.dataset.di); else hideTip(); });
+  svg.addEventListener('pointerleave', hideTip);
+  svg.addEventListener('click', e => { const t = e.target; if (t.dataset && t.dataset.gi != null) select(+t.dataset.gi, +t.dataset.di); });
+  svg.addEventListener('keydown', e => {
+    const k = {ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0]}[e.key];
+    if (!k) return; e.preventDefault();
+    select(Math.min(GWS.length - 1, Math.max(0, st.gi + k[0])), Math.min(DEPTHS.length - 1, Math.max(0, st.di + k[1])));
+  });
+  host.textContent = ''; host.append(svg);
+}
+
+const tip = $('tip');
+function showTip(ev, gi, di){
+  const R = G[gi][di], w = recOf(R);
+  tip.textContent = '깊이 ' + DEPTHS[di] + ' m · 지하수위 GL-' + GWS[gi] + ' m → ' + (w ? '권장 ' + w : '후보 없음');
+  tip.style.display = 'block';
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(innerWidth - r.width - 8, ev.clientX + 14)) + 'px';
+  tip.style.top = Math.max(8, Math.min(innerHeight - r.height - 8, ev.clientY + 14)) + 'px';
+}
+const hideTip = () => { tip.style.display = 'none'; };
+
+function select(gi, di){
+  st.gi = gi; st.di = di;
+  const svg = $('map').firstChild, g = svg._geo, s = svg.querySelector('#sel');
+  s.setAttribute('x', g.x(DEPTHS[di])); s.setAttribute('y', g.y(GWS[gi]));
+  renderPick();
+}
+
+function renderPick(){
+  const R = G[st.gi][st.di], box = $('pick'); box.textContent = '';
+  const eb = document.createElement('div'); eb.className = 'eyebrow'; eb.textContent = '굴착 ' + R.depth + ' m · 지하수위 GL-' + R.gw + ' m · 권장 공법';
+  const big = document.createElement('div'), w = recOf(R);
+  big.className = 'big' + (w ? '' : ' none'); big.textContent = w || '후보 없음';
+  const p = document.createElement('p'); p.className = 'note'; p.style.margin = '0 0 8px';
+  p.textContent = '규칙상 최소 ' + R.base + ' 이상 필요 · 지보 ' + R.support + (R.gw < R.depth ? ' · 지하수위가 굴착면 위' : ' · 지하수위가 굴착면 아래');
+  const sc = document.createElement('div'); sc.className = 'x-scroll'; const t = document.createElement('table');
+  const hr = document.createElement('tr'); ['공법', '판정', '공사비(백만원)', '공기(일)'].forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.append(th); }); t.append(hr);
+  R.rows.forEach((r, i) => {
+    const tr = document.createElement('tr'), td = (txt, cls) => { const c = document.createElement('td'); c.textContent = txt; if (cls) c.className = cls; return c; };
+    const first = document.createElement('td'), sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = COLORS[i]; first.append(sw, document.createTextNode(r.wall));
+    const tag = document.createElement('td'), span = document.createElement('span');
+    span.className = 'tag ' + (r.reasons.length ? 'bad' : r.belowTier ? 'warn' : r.rank === 1 ? 'ok' : '');
+    span.textContent = r.reasons.length ? '적용 불가' : r.belowTier ? '등급 미달' : r.rank === 1 ? '권장' : '후보 ' + r.rank; tag.append(span);
+    tr.append(first, tag, r.reasons.length ? td('-', 'num') : td(fmt(r.cost), 'num'), r.reasons.length ? td('-', 'num') : td(fmt(r.days), 'num'));
+    t.append(tr);
+    if (r.reasons.length){ const e = document.createElement('tr'), c = td(r.reasons.join(' · '), 'l'); c.colSpan = 4; c.style.cssText = 'font-size:12px;color:var(--ink2);border-bottom:1px solid var(--grid)'; e.append(c); t.append(e); }
+  });
+  sc.append(t);
+  const n = document.createElement('p'); n.className = 'note'; n.style.marginTop = '8px'; n.textContent = '근입깊이 0.3H 기준값. 흐린 "등급 미달"은 더 싸거나 빠를 수 있어도 규칙상 요구 안전 등급보다 낮은 공법입니다.';
+  box.append(eb, big, p, sc, n);
+}
+
+function renderRuns(){
+  const REP = [2, 6, 10, 16, 22, 30], t = $('runs'); t.textContent = '';
+  const hr = document.createElement('tr'); ['지하수위', '굴착깊이에 따른 권장 공법 (2~40 m)'].forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.append(th); }); t.append(hr);
+  REP.forEach(g => {
+    const gi = g / 2, row = G[gi], segs = [];
+    row.forEach((R, di) => { const w = recOf(R), last = segs[segs.length - 1]; if (last && last.w === w) last.to = DEPTHS[di]; else segs.push({w, from: DEPTHS[di], to: DEPTHS[di]}); });
+    const tr = document.createElement('tr'), a = document.createElement('td'), b = document.createElement('td');
+    a.textContent = 'GL-' + g + ' m'; a.style.whiteSpace = 'nowrap';
+    segs.forEach(s => { const sp = document.createElement('span'), i = document.createElement('i'); sp.className = 'run'; i.style.background = s.w ? COLORS[NAMES.indexOf(s.w)] : 'var(--none)'; if (!s.w) i.style.border = '1px solid var(--axis)';
+      sp.append(i, document.createTextNode((s.from === s.to ? s.from : s.from + '~' + s.to) + ' m ' + (s.w || '후보 없음'))); b.append(sp); });
+    tr.append(a, b); t.append(tr);
+  });
+}
+
+function renderNotes(){
+  const nb = NB[st.nb], items = [
+    '권장 = 규칙상 요구되는 안전 등급 이상이면서 적용 가능한 공법 중 공기가 가장 짧은 공법(같으면 공사비 낮은 순). 현재 인접 조건: ' + nb.type + ' 이격 ' + nb.dist + 'm, 둘레 ' + st.perim + 'm.',
+    '기준 벽체: 깊이 18m 이상, 또는 민감 인접(이격 3m 미만·고층·지하철·문화재)에서 12m 이상, 또는 지하수위가 굴착면 위에서 14m 이상이면 D-Wall. 지하수위가 굴착면 위에서 6m 이상이면 SCW. 그 외 민감 4m 이상·10m 초과·지하수 있음이면 CIP. 나머지는 H-Pile.',
+    '적용깊이: H-Pile 0~12m(지하수위가 굴착면 위면 불가), CIP 4~16m, SCW 6~22m, D-Wall 8~45m. 조건에 맞는 후보가 없으면 지도에 "–"로 표시합니다.',
+    '단가·시공량·적용깊이·규칙은 일반 경험칙을 단순화한 가상값이며 출처가 없습니다. 토공·배수·되메우기·지하 구조체 비용은 제외했고 견적·정산 근거로 쓸 수 없습니다.',
+    '지하수위는 직접 입력 가정입니다. 인근 시추공 실측 조회, 유사현장, 문헌은 전체 검토 보고서(advisor/run.py)에서 제공합니다. 최종 판단은 구조·지반 전문 기술자의 검토가 필요합니다.'];
+  const ul = $('notes'); ul.textContent = ''; items.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.append(li); });
+}
+
+function update(){ compute(); renderMap(); renderPick(); renderRuns(); renderNotes(); }
+document.querySelectorAll('#nbSeg button').forEach(b => b.addEventListener('click', () => {
+  st.nb = b.dataset.nb; document.querySelectorAll('#nbSeg button').forEach(x => x.setAttribute('aria-pressed', x === b)); update(); }));
+$('perim').addEventListener('input', () => { const v = parseFloat($('perim').value); if (isFinite(v)) { st.perim = Math.min(1200, Math.max(40, v)); update(); } });
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { renderMap(); }, 120); });
+renderLegend(); update();
+</script>
+</body>
+</html>
